@@ -7,7 +7,7 @@
 	<id>com.rktech-de.raster2laser_gcode</id>
 	
 	<!-- Dependencies, only the main python script is needed -->
-	<dependency type="executable" location="extensions">raster2laser_gcode.py</dependency>
+	<dependency type="executable" location="extensions">raster2laser_gcode_ng.py</dependency>
 	<dependency type="executable" location="extensions">inkex.py</dependency>
 	    	
        	<!-- Title and description -->
@@ -135,7 +135,7 @@
     
 	<!-- Python script to run -->
 	<script>
-    	<command reldir="extensions" interpreter="python">raster2laser_gcode.py</command>
+    	<command reldir="extensions" interpreter="python">raster2laser_gcode_ng.py</command>
     </script>
 </inkscape-extension>
 

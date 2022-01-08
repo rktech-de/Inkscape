@@ -1,108 +1,139 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Comment -->
-<!--  -->
 <inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
-	<!-- Nome con cui compare l'estensione nel menù, fa casino con gli underscore _ -->
-	<name>Raster 2 Laser GCode generator</name>
-	<!-- il campo ID deve essere univoco  -->
-	<id>com.305engineering.raster2laser_gcode</id>
+	<!-- Name by which the extension appears in the menu -->
+	<name>Raster2Laser NG</name>
+	<!-- the ID field must be unique  -->
+	<id>com.rktech-de.raster2laser_gcode</id>
 	
-	<!-- Dipendenze, basta solo lo script python principale -->
+	<!-- Dependencies, only the main python script is needed -->
 	<dependency type="executable" location="extensions">raster2laser_gcode.py</dependency>
 	<dependency type="executable" location="extensions">inkex.py</dependency>
 	    	
-	<!-- Parametri di input per lo script python che vengono visualizzati nel widget creato da inkscape-->
-	<!-- vengono generati in ordine di come vengono scritti  -->
-	
-	<!-- Titolo e descrizione -->
-	<param name="Title" type="description">Raster 2 Laser GCode generator</param>
-	<param name="Description" type="description">created by 305 Engineering</param>
-    
-	<!-- Opzioni di esportazione dell'immagine -->
-	<param name="directory" type="string"  gui-text="Export directory"></param>
-	<param name="filename" type="string"  gui-text="File Name"></param>
-	<param name="add-numeric-suffix-to-filename" type="boolean" gui-text="Add numeric suffix to filename">true</param>
-		
-	<param name="bg_color" type="enum" gui-text="Replace transparency with">
-		<_item value="#ffffff">White</_item>
-		<_item value="#000000">Black</_item>
-	</param>
-	
-	<param name="resolution" type="enum" gui-text="Resolution">
-		<_item value="1">1 pixel/mm</_item>
-		<_item value="2">2 pixel/mm</_item>
-		<_item value="5">5 pixel/mm</_item>
-		<_item value="10">10 pixel/mm</_item>
-	</param>
-		
-	<!-- Come convertire in scala di grigi -->
-	<param name="grayscale_type" type="enum" gui-text="Color to Grayscale conversion">
-		<_item value="1">0.21R + 0.71G + 0.07B</_item>
-		<_item value="2">(R+G+B)/3</_item>
-		<_item value="3">R</_item>
-		<_item value="4">G</_item>
-		<_item value="5">B</_item>
-		<_item value="6">Max Color</_item>
-		<_item value="7">Min Color</_item>
-	</param>
-	
-	<!-- Modalità di conversione in Bianco e Nero -->
-	<param name="conversion_type" type="enum" gui-text="B/W conversion algorithm ">
-		<_item value="1">B/W fixed threshold</_item>
-		<_item value="2">B/W random threshold</_item>
-		<_item value="3">Halftone</_item>
-		<_item value="4">Halftone row</_item>
-		<_item value="5">Halftone column</_item>
-		<_item value="6">Grayscale</_item>
-	</param>
-	
-	<!-- Opzioni modalita -->
-	<param name="BW_threshold" type="int" min="1" max="254" gui-text="B/W threshold">128</param>
-	
-	<param name="grayscale_resolution" type="enum" gui-text="Grayscale resolution ">
-		<_item value="1">256</_item>
-		<_item value="2">128</_item>  <!-- 256/2 -->
-		<_item value="4">64</_item>  <!-- 256/4 -->
-		<_item value="8">32</_item>  <!-- 256/8 -->
-		<_item value="16">16</_item>  <!-- 256/16 -->
-		<_item value="32">8</_item>  <!-- 256/32 -->
-	</param>	
+       	<!-- Title and description -->
+	<param name="Title" type="description">Raster 2 Laser GCode generator NG</param>
+	<param name="Description" type="description">RKtech (fork from 305 Engineering)</param>
 
-	
-	<!-- Velocità Nero e spostamento -->
-	<param name="speed_ON" type="int" min="1" max="5000" gui-text="Engraving speed">200</param>
-	
-	<!-- FLIP = coordinate Cartesiane (False) Coordinate "informatiche" (True) -->
-	<param name="flip_y" type="boolean" gui-text="Flip Y">false</param>
+	<!-- Input parameters for python scripts that are displayed in the widget 
+             created by inkscape are generated in order of how they are written  -->
+        <param name="nop" type="notebook">
+            <page name="p1" gui-text="Image setup">
+            
+                <!-- Image Export Options -->
+                <param name="directory" type="string"  gui-text="Export directory"></param>
+                <param name="filename" type="string"  gui-text="File Name"></param>
+                <param name="add-numeric-suffix-to-filename" type="boolean" gui-text="Add numeric suffix to filename">true</param>
+                        
+                <param name="bg_color" type="enum" gui-text="Replace transparency with">
+                        <_item value="#ffffff">White</_item>
+                        <_item value="#000000">Black</_item>
+                </param>
+                
 
-	<!-- Homing -->
-	<param name="homing" type="enum" gui-text="Homing ?">
-		<_item value="1">G28 (Standard)</_item>
-		<_item value="2">$H (GRBL)</_item>
-		<_item value="3">No Homing</_item>
-	</param>
-	
-	<param name="laseron" type="string"  gui-text="Laser ON Command">M03</param>
-	<param name="laseroff" type="string"  gui-text="Laser OFF Command">M05</param>
-	
-	<!-- Anteprima = Solo immagine BN -->
-	<param name="preview_only" type="boolean" gui-text="Preview only">false</param>
-	<param name="p_only" type="description">If "Preview only" is true the gcode file will not be generated.</param>
+                <param name="resolution" type="enum" gui-text="Resolution">
+                        <_item value="0">Use laser spot size</_item>
+                        <_item value="1">1 pixel/mm</_item>
+                        <_item value="2">2 pixel/mm</_item>
+                        <_item value="5">5 pixel/mm</_item>
+                        <_item value="10">10 pixel/mm</_item>
+                </param>
+                <param name="spot_size" type="float" precision="3" min="0.001" max="5.0" gui-text="Laser spot size[mm]">0.2</param>
+                        
+                <!-- How to convert colour to grayscale -->
+                <param name="grayscale_type" type="enum" gui-text="Color to Grayscale conversion">
+                        <_item value="1">0.21R + 0.71G + 0.07B</_item>
+                        <_item value="2">(R+G+B)/3</_item>
+                        <_item value="3">R</_item>
+                        <_item value="4">G</_item>
+                        <_item value="5">B</_item>
+                        <_item value="6">Max Color</_item>
+                        <_item value="7">Min Color</_item>
+                </param>
+                
+                <!-- Black and White Conversion Mode -->
+                <param name="conversion_type" type="enum" gui-text="B/W conversion algorithm ">
+                        <_item value="1">B/W fixed threshold</_item>
+                        <_item value="2">B/W random threshold</_item>
+                        <_item value="3">Halftone</_item>
+                        <_item value="4">Halftone row</_item>
+                        <_item value="5">Halftone column</_item>
+                        <_item value="6">Simple2D</_item>
+                        <_item value="7">Floyd–Steinberg</_item>
+                        <_item value="8">Jarvis-Judice-Ninke</_item>
+                        <_item value="9">Grayscale</_item>
+                </param>
+                
+                <param name="BW_threshold" type="int" min="1" max="254" gui-text="B/W threshold">128</param>
+                <param name="grayscale_resolution" type="int" min="2" max="256" gui-text="Number of grey levels">256</param>
+                
+                <!-- FLIP = unchecked menan that the image look like GCode output -->
+                <param name="flip_x" type="boolean" gui-text="Flip X">false</param>
+                <param name="flip_y" type="boolean" gui-text="Flip Y">false</param>
+                
+                <param name="fullPage" type="boolean" gui-text="Use full page (or drawing outline)">true</param>
+                <param name="preview_only" type="boolean" gui-text="Preview only">false</param>
+                <param name="p_only" type="description">If "Preview only" is true the gcode file will not be generated.</param>
+        
+            </page>
+            <page name="p2" gui-text="G-Code">
+                
+                <param name="startGCode" type="string"  gui-text="Init code">M65 P0{NL}M68 E0 Q0{NL}G90 G21{NL}(Wait for Laser ready){NL}M64 P0{NL}M66 P0 L3 Q999{NL}M65 P0{NL}F{FEED}</param>
+                <param name="postGCode" type="string"  gui-text="Post code">M65 P0{NL}M68 E0 Q0{NL}M2</param>
 
+                <param name="lineCode" type="string"  gui-text="Start of line code">(Scanline {SCNL}, move dir {PDIR}){NL}G0 X{XPOS} Y{YPOS}</param>
+                <param name="pixelCode" type="string"  gui-text="Power level change code">G1 X{XPOS} Y{YPOS} M67E0Q{POWT}</param>  <!-- or "G1 X{XPOS} Y{YPOS} S{POWT}" -->
 
-	<!-- Per togliere la casella Antepima diretta bisogna sostituire <effect> con <effect needs-live-preview="false">  -->
-	<!-- <effect> -->
-	<!-- 	<effect needs-live-preview="false"> -->
+                <param name="laseron" type="string"  gui-text="Laser ON command">M62 P0</param>        <!-- or "M03" -->
+                <param name="laseroff" type="string"  gui-text="Laser OFF command">M63 P0</param>      <!-- or "M05" -->
+
+                <!-- Speed for engraving path -->
+                <param name="speed_ON" type="int" min="1" max="10000" gui-text="Engraving speed [mm/min]">200</param>
+
+                <param name="minPower" type="float" precision="2" min="0.0" max="10000.0" gui-text="Minimum laser power value (White)">0.0</param>
+                <param name="maxPower" type="float" precision="2" min="0.0" max="10000.0" gui-text="Maximum laser power value (Black)">100.0</param>
+                
+                <param name="accDistance" type="float" precision="3" min="0.0" max="1000.0" gui-text="Distance for acceleration [mm]">100.0</param>
+                <param name="zLevel" type="float" precision="3" min="-1000.0" max="1000.0" gui-text="Z position [mm]">100.0</param>
+                <param name="rotDiameter" type="float" precision="3" min="0.1" max="1000.0" gui-text="Rotary axis diameter [mm]">50.0</param>
+
+                <param name="xStartPoint" type="enum" gui-text="Zero point for width">
+                        <_item value="0">Left</_item>
+                        <_item value="1">Center</_item>
+                        <_item value="2">Right</_item>
+                </param>
+                <param name="yStartPoint" type="enum" gui-text="Zero point for heigth">
+                        <_item value="0">Top</_item>
+                        <_item value="1">Middle</_item>
+                        <_item value="2">Bottom</_item>
+                </param>
+
+                <param name="scanType" type="enum" gui-text="Scan image lines">
+                        <_item value="0">Left to right</_item>
+                        <_item value="1">Right to left</_item>
+                        <_item value="2">Zig zag X</_item>
+                        <_item value="3">Fastest X</_item>
+                        <_item value="4">Top to bottom</_item>
+                        <_item value="5">Bottom to top</_item>
+                        <_item value="6">Zig zag Y</_item>
+                        <_item value="7">Fastest Y</_item>
+                </param>
+
+                
+
+            </page>
+        </param>
+
 	<effect needs-live-preview="false"> 
         <object-type>all</object-type>
-		<!-- Dove comparirà lo script all'interno del menù estensioni -->
-		<!--  " Estensioni => 305 Engineering => prova_estensione " -->
+
+        <!-- Add tool into this extension menue  -->
+        <!--  " Extensions => GCode Laser tools => Raster2Laser NG " -->
         <effects-menu>
-            <submenu name="305 Engineering"/>
+            <submenu name="GCode Laser tools"/>
         </effects-menu>
     </effect>
     
-	<!-- Script python da eseguire -->
+	<!-- Python script to run -->
 	<script>
     	<command reldir="extensions" interpreter="python">raster2laser_gcode.py</command>
     </script>

@@ -92,9 +92,9 @@
                 <param name="minPower" type="float" precision="2" min="0.0" max="10000.0" gui-text="Minimum laser power value (White)">0.0</param>
                 <param name="maxPower" type="float" precision="2" min="0.0" max="10000.0" gui-text="Maximum laser power value (Black)">100.0</param>
                 
-                <param name="accDistance" type="float" precision="3" min="0.0" max="1000.0" gui-text="Distance for acceleration [mm]">100.0</param>
-                <param name="zLevel" type="float" precision="3" min="-1000.0" max="1000.0" gui-text="Z position [mm]">100.0</param>
-                <param name="rotDiameter" type="float" precision="3" min="0.1" max="1000.0" gui-text="Rotary axis diameter [mm]">50.0</param>
+                <param name="accDistance" type="float" precision="3" min="0.0" max="1000.0" gui-text="Distance for acceleration [mm]">10.0</param>
+                <param name="zLevel" type="float" precision="3" min="-1000.0" max="1000.0" gui-text="Z position [mm]">60.0</param>
+                <param name="rotDiameter" type="float" precision="3" min="0.1" max="1000.0" gui-text="Rotary axis workpiece diameter [mm]">50.0</param>
 
                 <param name="xStartPoint" type="enum" gui-text="Zero point for width">
                         <_item value="0">Left</_item>

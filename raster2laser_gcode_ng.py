@@ -1,19 +1,21 @@
 '''
 # ----------------------------------------------------------------------------
 # Copyright (C) 2022 RKtech<info@rktech.de>
-# - Aadded dithering
-#   https://github.com/Utkarsh-Deshmukh/image-dithering-python
-# - Modify grayscale with lookuptable and any number of 2..256 gray steps
-# - Add Flip X
-# - Select size of object outline
+# - Added 3 dithering types (based on this code https://github.com/Utkarsh-Deshmukh/image-dithering-python)
+#   - Simple2D
+#   - Floyd–Steinberg
+#   - Jarvis-Judice-Ninke
+# - Modify gray scale conversion with lookup table and any number of 2..256 gray steps
+# - Add image conversion "Flip X"
+# - Use image size of full page or the outline of all objects
 # - Define resolution with laser spot size
 # - New B/W to GCode generator with this features
-#   - Min/max laser power values
+#   - Set min/max laser power values
 #   - Allow user configurable GCode init, line, and exit Code
-#   - Calculate positions for rotary axis with given abDiameter
-#   - Add distance move for acceleration and deceleration
-#   - set zero position
-#   - Scanline in X or Y
+#   - Calculate positions for rotary axis with a given diameter
+#   - Add a distance to move the laser for acceleration and deceleration with laser power off
+#   - set position of zero point
+#   - Scanline in X or Y direction
 #
 # Todo:
 # - Add a variable Z axis geometry, e.g. linear or arc defined by 3 points
@@ -599,9 +601,9 @@ class GcodeExport(inkex.Effect):
                          'BPOS': '0',
                          'FEED': '%g'%(feedRate),
                          'POWT': '0',
-                         'PCMT': '',
                          'POWF': '0',
                          'PCMF': '',
+                         'PCMT': '',
                          'SCNC': '0',
                          'SCNL': '0',
                          'PDIR': '=='}

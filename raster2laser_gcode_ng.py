@@ -3,7 +3,7 @@
 # Copyright (C) 2022 RKtech<info@rktech.de>
 # - Added 3 dithering types (based on this code https://github.com/Utkarsh-Deshmukh/image-dithering-python)
 #   - Simple2D
-#   - Floyd–Steinberg
+#   - Floyd-Steinberg
 #   - Jarvis-Judice-Ninke
 # - Modify gray scale conversion with lookup table and any number of 2..256 gray steps
 # - Add image conversion "Flip X"

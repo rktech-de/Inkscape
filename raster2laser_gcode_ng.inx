@@ -34,7 +34,13 @@
                         <_item value="0">Use laser spot size</_item>
                         <_item value="1">1 pixel/mm</_item>
                         <_item value="2">2 pixel/mm</_item>
+                        <_item value="3">3 pixel/mm</_item>
+                        <_item value="4">4 pixel/mm</_item>
                         <_item value="5">5 pixel/mm</_item>
+                        <_item value="6">6 pixel/mm</_item>
+                        <_item value="7">7 pixel/mm</_item>
+                        <_item value="8">8 pixel/mm</_item>
+                        <_item value="9">9 pixel/mm</_item>
                         <_item value="10">10 pixel/mm</_item>
                 </param>
                 <param name="imgSpotSize" type="float" precision="3" min="0.001" max="5.0" gui-text="Laser spot size[mm]">0.2</param>

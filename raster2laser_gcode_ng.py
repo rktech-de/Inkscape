@@ -49,16 +49,36 @@
 import sys
 import os
 import re
-
-sys.path.append('/usr/share/inkscape/extensions')
-sys.path.append('/Applications/Inkscape.app/Contents/Resources/extensions') 
-
 import subprocess
 import math
-
 import inkex
 import png
 import array
+
+
+# from Pull Request "https://github.com/305engineering/Inkscape/pull/23"
+#sys.path.append('/usr/share/inkscape/extensions')
+#sys.path.append('/Applications/Inkscape.app/Contents/Resources/extensions') 
+
+def extensions_path_fallback():
+    sys.path.append('/usr/share/inkscape/extensions')
+    sys.path.append('/Applications/Inkscape.app/Contents/Resources/extensions')
+
+
+try:
+    command='inkscape --extension-directory'
+    p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    return_code = p.wait()
+    stdout, stderr = p.communicate()
+    extensions_path = stdout.strip()
+
+    if extensions_path:
+        sys.path.append(extensions_path)
+    else:
+        extensions_path_fallback()
+except subprocess.CalledProcessError:
+    extensions_path_fallback()
+
 
 
 class GcodeExport(inkex.Effect):

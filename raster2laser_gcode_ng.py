@@ -55,7 +55,7 @@ import inkex
 import png
 import array
 
-
+# Pull Request #23
 # from Pull Request "https://github.com/305engineering/Inkscape/pull/23"
 #sys.path.append('/usr/share/inkscape/extensions')
 #sys.path.append('/Applications/Inkscape.app/Contents/Resources/extensions') 

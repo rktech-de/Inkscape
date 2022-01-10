@@ -67,9 +67,35 @@ In my machine configuration I'm using not the spindle PWM and enable but I use a
 
 Even if I tested it only with my setup it should be now possible to use any other machine setup now.
 
+
+
 ### Detailed description 
 
 .... todo but a first desciption of the code generator config is done ....
+
+The CGode generation is done completely different then in the fork master repository. Therefore there are 4 configuration settings:
+
+* **Init code:** put in here everithing you need to setup your machine once at startup
+* **Start of line code:** put here the commands you need at the beginning of a new scanline
+* **Power level change code:** this code is executed whenever the laser power value changes. It will be always set to minimum power level at the end of a scanline
+* **Post code:** put in here everithing you need to stop your machine once at the end
+
+Possible variables to be used for this four parameters
+
+| Variable | description                                                  |
+| -------- | ------------------------------------------------------------ |
+| {NL}     | New line in the GCode file at this position, currently hard-coded with '\n'. At the end of an config string an newline is automatically added |
+| {XPOS}   | calculated X position                                        |
+| {YPOS}   | calculated Y position                                        |
+| {ZPOS}   | always the configured "Z level" value                        |
+| {APOS}   | calculated A position of an rotary axis, based on the Y position and the workpiece diameter |
+| {BPOS}   | calculated B position of an rotary axis, based on the X position and the workpiece diameter |
+| {FEED}   | always the configured "Feed rate" value                      |
+| {POWT}   | calculated laser power, based on gray level and laser power min/max configuration |
+| {PCMT}   | substituted by the "Laser ON command" or "Laser OFF command" string depending on grey level |
+| {SCNL}   | actual scan line number for comment purpose                  |
+| {SCNC}   | actual column number for comment purpose                     |
+| {PDIR}   | depends on current scan line move direction. Will be: "->", "<-", "/\\" or "\\/" |
 
 #### Configuration Page "G-Code"
 

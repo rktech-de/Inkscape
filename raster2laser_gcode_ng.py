@@ -69,58 +69,42 @@ class GcodeExport(inkex.Effect):
         inkex.Effect.__init__(self)
 
         # To make the notebook parameter happy
-        self.OptionParser.add_option("","--nop",action="store",type="string",dest="nop",default="",help="")
+        self.OptionParser.add_option("","--nopNB",action="store",type="string",dest="nopNB",default="",help="")
         
-        # Opzioni di esportazione dell'immagine
-        self.OptionParser.add_option("-d", "--directory",action="store", type="string", dest="directory", default="/home/",help="Directory for files") ####check_dir
-        self.OptionParser.add_option("-f", "--filename", action="store", type="string", dest="filename", default="-1.0", help="File name")            
-        self.OptionParser.add_option("","--add-numeric-suffix-to-filename", action="store", type="inkbool", dest="add_numeric_suffix_to_filename", default=True,help="Add numeric suffix to filename")            
-        self.OptionParser.add_option("","--bg_color",action="store",type="string",dest="bg_color",default="",help="")
-        self.OptionParser.add_option("","--resolution",action="store", type="int", dest="resolution", default="0",help="") #Usare il valore su float(xy)/resolution e un case per i DPI dell export
-        self.OptionParser.add_option("","--spot_size",action="store", type="float", dest="spot_size", default="0.2",help="")
-        self.OptionParser.add_option("","--grayscale_type",action="store", type="int", dest="grayscale_type", default="1",help="") 
-        self.OptionParser.add_option("","--conversion_type",action="store", type="int", dest="conversion_type", default="1",help="") 
-        self.OptionParser.add_option("","--BW_threshold",action="store", type="int", dest="BW_threshold", default="128",help="") 
-        self.OptionParser.add_option("","--grayscale_resolution",action="store", type="int", dest="grayscale_resolution", default="256",help="") 
-        
-        #Velocita Nero e spostamento
-        self.OptionParser.add_option("","--speed_ON",action="store", type="int", dest="speed_ON", default="200",help="") 
+        # Image Settings
+        self.OptionParser.add_option("-d", "--imgDirName",action="store", type="string", dest="imgDirName", default="/home/",help="Directory for files") ####check_dir
+        self.OptionParser.add_option("-f", "--imgFileName", action="store", type="string", dest="imgFileName", default="-1.0", help="File name")            
+        self.OptionParser.add_option("","--imgNumFileSuffix", action="store", type="inkbool", dest="imgNumFileSuffix", default=True,help="Add numeric suffix to filename")            
+        self.OptionParser.add_option("","--imgBGcolor", action="store",type="string",dest="imgBGcolor",default="",help="")
+        self.OptionParser.add_option("","--imgResolution", action="store", type="int", dest="imgResolution", default="0",help="") #Usare il valore su float(xy)/resolution e un case per i DPI dell export
+        self.OptionParser.add_option("","--imgSpotSize", action="store", type="float", dest="imgSpotSize", default="0.2",help="")
+        self.OptionParser.add_option("","--imgGrayType", action="store", type="int", dest="imgGrayType", default="1",help="") 
+        self.OptionParser.add_option("","--imgConvType", action="store", type="int", dest="imgConvType", default="1",help="") 
+        self.OptionParser.add_option("","--imgBWthreshold", action="store", type="int", dest="imgBWthreshold", default="128",help="") 
+        self.OptionParser.add_option("","--imgGrayResolution", action="store", type="int", dest="imgGrayResolution", default="256",help="") 
+        self.OptionParser.add_option("","--imgRotDiameter",action="store", type="float", dest="imgRotDiameter", default="50.0",help="")
+        self.OptionParser.add_option("","--imgFullPage",action="store", type="inkbool", dest="imgFullPage", default=True,help="") 
+        self.OptionParser.add_option("","--imgPreviewOnly",action="store", type="inkbool", dest="imgPreviewOnly", default=False,help="") 
+        self.OptionParser.add_option("","--dbg", type="inkbool", dest="debug", default=False,help="not stored")
 
-        # Mirror
-        self.OptionParser.add_option("","--flip_x",action="store", type="inkbool", dest="flip_x", default=False,help="")
-        self.OptionParser.add_option("","--flip_y",action="store", type="inkbool", dest="flip_y", default=False,help="")
-        
-        # Homing
-        #self.OptionParser.add_option("","--homing",action="store", type="int", dest="homing", default="1",help="")
-
-        # Commands
-        self.OptionParser.add_option("","--startGCode", action="store", type="string", dest="start_gcode", default="", help="")
-        self.OptionParser.add_option("","--postGCode", action="store", type="string", dest="post_gcode", default="", help="")
-
-        self.OptionParser.add_option("","--lineCode", action="store", type="string", dest="line_code", default="", help="")
-        self.OptionParser.add_option("","--pixelCode", action="store", type="string", dest="pixel_code", default="", help="")
-
-        self.OptionParser.add_option("","--laseron", action="store", type="string", dest="laseron", default="M03", help="")
-        self.OptionParser.add_option("","--laseroff", action="store", type="string", dest="laseroff", default="M05", help="")
-
-        self.OptionParser.add_option("","--minPower",action="store", type="float", dest="min_power", default="0.0",help="")
-        self.OptionParser.add_option("","--maxPower",action="store", type="float", dest="max_power", default="100.0",help="")
-
-        self.OptionParser.add_option("","--accDistance",action="store", type="float", dest="acc_distance", default="10.0",help="")
-        self.OptionParser.add_option("","--zLevel",action="store", type="float", dest="z_level", default="10.0",help="")
-        self.OptionParser.add_option("","--rotDiameter",action="store", type="float", dest="rot_diameter", default="50.0",help="")
-        
-        self.OptionParser.add_option("","--xStartPoint",action="store", type="int", dest="x_start_point", default="0",help="")
-        self.OptionParser.add_option("","--yStartPoint",action="store", type="int", dest="y_start_point", default="0",help="")
-        self.OptionParser.add_option("","--scanType",action="store", type="int", dest="scan_type", default="3",help="")
-        
-        # Anteprima = Solo immagine BN 
-        self.OptionParser.add_option("","--preview_only",action="store", type="inkbool", dest="preview_only", default=False,help="") 
-        self.OptionParser.add_option("","--fullPage",action="store", type="inkbool", dest="full_page", default=True,help="") 
-        
-
-        #inkex.errormsg("BLA BLA BLA Messaggio da visualizzare") #DEBUG
-
+        # GCode (1) Settings
+        self.OptionParser.add_option("","--gc1Setting", action="store", type="string", dest="gc1Setting", default="", help="")
+        self.OptionParser.add_option("","--gc1StartCode", action="store", type="string", dest="gc1StartCode", default="", help="")
+        self.OptionParser.add_option("","--gc1PostCode", action="store", type="string", dest="gc1PostCode", default="", help="")
+        self.OptionParser.add_option("","--gc1LineCode", action="store", type="string", dest="gc1LineCode", default="", help="")
+        self.OptionParser.add_option("","--gc1PixelCode", action="store", type="string", dest="gc1PixelCode", default="", help="")
+        self.OptionParser.add_option("","--gc1LaserOn", action="store", type="string", dest="gc1LaserOn", default="M03", help="")
+        self.OptionParser.add_option("","--gc1LaserOff", action="store", type="string", dest="gc1LaserOff", default="M05", help="")
+        self.OptionParser.add_option("","--gc1FeedRate",action="store", type="int", dest="gc1FeedRate", default="200",help="") 
+        self.OptionParser.add_option("","--gc1MinPower",action="store", type="float", dest="gc1MinPower", default="0.0",help="")
+        self.OptionParser.add_option("","--gc1MaxPower",action="store", type="float", dest="gc1MaxPower", default="100.0",help="")
+        self.OptionParser.add_option("","--gc1AccDistance",action="store", type="float", dest="gc1AccDistance", default="10.0",help="")
+        self.OptionParser.add_option("","--gc1LevelZ",action="store", type="float", dest="gc1LevelZ", default="10.0",help="")
+        self.OptionParser.add_option("","--gc1FlipX",action="store", type="inkbool", dest="gc1FlipX", default=False,help="")
+        self.OptionParser.add_option("","--gc1FlipY",action="store", type="inkbool", dest="gc1FlipY", default=False,help="")
+        self.OptionParser.add_option("","--gc1ZeroPointX",action="store", type="int", dest="gc1ZeroPointX", default="0",help="")
+        self.OptionParser.add_option("","--gc1ZeroPointY",action="store", type="int", dest="gc1ZeroPointY", default="0",help="")
+        self.OptionParser.add_option("","--gc1ScanType",action="store", type="int", dest="gc1ScanType", default="3",help="")
 
             
 ######## 	Richiamata da __init__()
@@ -128,57 +112,57 @@ class GcodeExport(inkex.Effect):
     def effect(self):
 
         current_file = self.args[-1]
-        bg_color = self.options.bg_color
+        bg_color = self.options.imgBGcolor
         
         
         ##Implementare check_dir
         
-        if (os.path.isdir(self.options.directory)) == True:					
+        if (os.path.isdir(self.options.imgDirName)) == True:					
             
             ##CODICE SE ESISTE LA DIRECTORY
             #inkex.errormsg("OK") #DEBUG
 
             
             #Aggiungo un suffisso al nomefile per non sovrascrivere dei file
-            if self.options.add_numeric_suffix_to_filename :
-                dir_list = os.listdir(self.options.directory) #List di tutti i file nella directory di lavoro
-                temp_name =  self.options.filename
+            if self.options.imgNumFileSuffix :
+                dir_list = os.listdir(self.options.imgDirName) #List di tutti i file nella imgDirName di lavoro
+                temp_name =  self.options.imgFileName
                 max_n = 0
                 for s in dir_list :
                     #r = re.match(r"^%s_0*(\d+)%s$"%(re.escape(temp_name),'.png' ), s)
                     r = re.match(r"^%s_0*(\d+)_.+preview\.%s$"%(re.escape(temp_name),'png' ), s)
                     if r :
                         max_n = max(max_n,int(r.group(1)))	
-                self.options.filename = temp_name + "_%04d"%(max_n+1)
+                self.options.imgFileName = temp_name + "_%04d"%(max_n+1)
 
 
             #genero i percorsi file da usare
             suffix = ""
-            if self.options.conversion_type == 1:
-                suffix = "_BW_"+str(self.options.BW_threshold)
-            elif self.options.conversion_type == 2:
+            if self.options.imgConvType == 1:
+                suffix = "_BW_"+str(self.options.imgBWthreshold)
+            elif self.options.imgConvType == 2:
                 suffix = "_BW_rnd"
-            elif self.options.conversion_type == 3:
+            elif self.options.imgConvType == 3:
                 suffix = "_HT"
-            elif self.options.conversion_type == 4:
+            elif self.options.imgConvType == 4:
                 suffix = "_HTrow"
-            elif self.options.conversion_type == 5:
+            elif self.options.imgConvType == 5:
                 suffix = "_HTcol"
-            elif self.options.conversion_type == 6:
-                suffix = "_S2D_"+str(self.options.BW_threshold)
-            elif self.options.conversion_type == 7:
-                suffix = "_FS_"+str(self.options.BW_threshold)
-            elif self.options.conversion_type == 8:
-                suffix = "_JJN_"+str(self.options.BW_threshold)
-            elif self.options.conversion_type == 9:
-                suffix = "_Gray_"+str(self.options.grayscale_resolution)
+            elif self.options.imgConvType == 6:
+                suffix = "_S2D_"+str(self.options.imgBWthreshold)
+            elif self.options.imgConvType == 7:
+                suffix = "_FS_"+str(self.options.imgBWthreshold)
+            elif self.options.imgConvType == 8:
+                suffix = "_JJN_"+str(self.options.imgBWthreshold)
+            elif self.options.imgConvType == 9:
+                suffix = "_Gray_"+str(self.options.imgGrayResolution)
             else:
                 inkex.errormsg("Unknown conversion type!")
                     
             
-            pos_file_png_exported = os.path.join(self.options.directory,self.options.filename+".png") 
-            pos_file_png_BW = os.path.join(self.options.directory,self.options.filename+suffix+"_preview.png") 
-            pos_file_gcode = os.path.join(self.options.directory,self.options.filename+suffix+".ngc") 
+            pos_file_png_exported = os.path.join(self.options.imgDirName,self.options.imgFileName+".png") 
+            pos_file_png_BW = os.path.join(self.options.imgDirName,self.options.imgFileName+suffix+"_preview.png") 
+            pos_file_gcode = os.path.join(self.options.imgDirName,self.options.imgFileName+suffix+".ngc") 
 
             #Esporto l'immagine in PNG
             self.exportPage(pos_file_png_exported,current_file,bg_color)
@@ -192,7 +176,7 @@ class GcodeExport(inkex.Effect):
                 os.remove(pos_file_png_exported)    
                 
         else:
-            inkex.errormsg("Directory does not exist! Please specify existing directory!")
+            inkex.errormsg("Directory does not exist! Please specify existing imgDirName!")
     
 
     
@@ -206,13 +190,13 @@ class GcodeExport(inkex.Effect):
         # -d 127 = risoluzione 127DPI  =>  5 pixel/mm  1pixel = 0.2mm
         ###command="inkscape -C -e \"%s\" -b\"%s\" %s -d 127" % (pos_file_png_exported,bg_color,current_file) 
 
-        if self.options.resolution < 1:
-            DPI = 1.0 / self.options.spot_size * 25.4
+        if self.options.imgResolution < 1:
+            DPI = 1.0 / self.options.imgSpotSize * 25.4
         else:
-            DPI = float(self.options.resolution) * 25.4
+            DPI = float(self.options.imgResolution) * 25.4
 
 
-        if self.options.full_page:
+        if self.options.imgFullPage:
             # export page
             #command="inkscape -C -e \"%s\" -b\"%s\" %s -d %s" % (pos_file_png_exported,bg_color,current_file,DPI) #Comando da linea di comando per esportare in PNG
             command='inkscape -C -e "%s" -b"%s" %s -d %s'%(pos_file_png_exported,bg_color,current_file,DPI) #Comando da linea di comando per esportare in PNG
@@ -250,42 +234,42 @@ class GcodeExport(inkex.Effect):
         ## Convert image into greyscale 
         ##############################################################################################################
         
-        if self.options.grayscale_type == 1:
+        if self.options.imgGrayType == 1:
             #0.21R + 0.71G + 0.07B
             for y in range(h): # y varia da 0 a h-1
                 for x in range(w): # x varia da 0 a w-1
                     pixel_position = (x + y * w)*4 if metadata['alpha'] else (x + y * w)*3
                     matrice[y][x] = int(pixels[pixel_position]*0.21 + pixels[(pixel_position+1)]*0.71 + pixels[(pixel_position+2)]*0.07)
         
-        elif self.options.grayscale_type == 2:
+        elif self.options.imgGrayType == 2:
             #(R+G+B)/3
             for y in range(h): # y varia da 0 a h-1
                 for x in range(w): # x varia da 0 a w-1
                     pixel_position = (x + y * w)*4 if metadata['alpha'] else (x + y * w)*3
                     matrice[y][x] = int((pixels[pixel_position] + pixels[(pixel_position+1)]+ pixels[(pixel_position+2)]) / 3 )
 
-        elif self.options.grayscale_type == 3:
+        elif self.options.imgGrayType == 3:
             #R
             for y in range(h): # y varia da 0 a h-1
                 for x in range(w): # x varia da 0 a w-1
                     pixel_position = (x + y * w)*4 if metadata['alpha'] else (x + y * w)*3
                     matrice[y][x] = int(pixels[pixel_position])
 
-        elif self.options.grayscale_type == 4:
+        elif self.options.imgGrayType == 4:
             #G
             for y in range(h): # y varia da 0 a h-1
                 for x in range(w): # x varia da 0 a w-1
                     pixel_position = (x + y * w)*4 if metadata['alpha'] else (x + y * w)*3
                     matrice[y][x] = int(pixels[(pixel_position+1)])
         
-        elif self.options.grayscale_type == 5:
+        elif self.options.imgGrayType == 5:
             #B
             for y in range(h): # y varia da 0 a h-1
                 for x in range(w): # x varia da 0 a w-1
                     pixel_position = (x + y * w)*4 if metadata['alpha'] else (x + y * w)*3
                     matrice[y][x] = int(pixels[(pixel_position+2)])
                 
-        elif self.options.grayscale_type == 6:
+        elif self.options.imgGrayType == 6:
             #Max Color
             for y in range(h): # y varia da 0 a h-1
                 for x in range(w): # x varia da 0 a w-1
@@ -317,9 +301,9 @@ class GcodeExport(inkex.Effect):
         
         conversionTypeText = 'unknown'
         
-        if self.options.conversion_type == 1:
+        if self.options.imgConvType == 1:
             # B/W fixed threshold
-            soglia = self.options.BW_threshold
+            soglia = self.options.imgBWthreshold
             conversionTypeText = 'B/W fixed threshold (TH:%i)'%(soglia)
             
             for y in range(h): 
@@ -330,7 +314,7 @@ class GcodeExport(inkex.Effect):
                         matrice_BN[y][x] = BLACK
 
                 
-        elif self.options.conversion_type == 2:
+        elif self.options.imgConvType == 2:
             # B/W random threshold
             from random import randint
             conversionTypeText = 'B/W random threshold'
@@ -344,7 +328,7 @@ class GcodeExport(inkex.Effect):
                         matrice_BN[y][x] = BLACK
     
             
-        elif self.options.conversion_type == 3:
+        elif self.options.imgConvType == 3:
             # Halftone
             conversionTypeText = 'Halftone'
             
@@ -370,7 +354,7 @@ class GcodeExport(inkex.Effect):
                             if media >= 0 and media < 10:       matrice_BN[y*5+y3][x*5+x3] =    BLACK
 
 
-        elif self.options.conversion_type == 4:
+        elif self.options.imgConvType == 4:
             # Halftone row
             conversionTypeText = 'Halftone row'
 
@@ -394,7 +378,7 @@ class GcodeExport(inkex.Effect):
                         if media >= 0 and media < 10:           matrice_BN[y][x*5+x3] =     BLACK
 
 
-        elif self.options.conversion_type == 5:
+        elif self.options.imgConvType == 5:
             # Halftone column
             conversionTypeText = 'Halftone column'
 
@@ -417,9 +401,9 @@ class GcodeExport(inkex.Effect):
                         if media >= 10 and media < 70:          matrice_BN[y*5+y3][x] =     Step4c[y3]
                         if media >= 0 and media < 10:           matrice_BN[y*5+y3][x] =     BLACK
         
-        elif self.options.conversion_type == 6:
+        elif self.options.imgConvType == 6:
             # Simple2D
-            soglia = self.options.BW_threshold
+            soglia = self.options.imgBWthreshold
             conversionTypeText = 'Simple2D (TH:%i)'%(soglia)
             
             for y in range(h):
@@ -449,9 +433,9 @@ class GcodeExport(inkex.Effect):
                     matrice_BN[y][x] = pixl
 
 
-        elif self.options.conversion_type == 7:
+        elif self.options.imgConvType == 7:
             # Floyd-Steinberg
-            soglia = self.options.BW_threshold
+            soglia = self.options.imgBWthreshold
             conversionTypeText = 'Floyd-Steinberg (TH:%i)'%(soglia)
 
             for y in range(h):
@@ -481,9 +465,9 @@ class GcodeExport(inkex.Effect):
                     if pixl < BLACK: pixl = BLACK
                     matrice_BN[y][x] = pixl
 
-        elif self.options.conversion_type == 8:
+        elif self.options.imgConvType == 8:
             # Jarvis-Judice-Ninke
-            soglia = self.options.BW_threshold
+            soglia = self.options.imgBWthreshold
             conversionTypeText = 'Jarvis-Judice-Ninke (TH:%i)'%(soglia)
             
             for y in range(h):
@@ -523,18 +507,18 @@ class GcodeExport(inkex.Effect):
                     if pixl > WHITE: pixl = WHITE
                     if pixl < BLACK: pixl = BLACK
                     matrice_BN[y][x] = pixl
-        elif self.options.conversion_type == 9:
+        elif self.options.imgConvType == 9:
             #Grayscale
-            conversionTypeText = 'Jarvis-Judice-Ninke (Res:%i)'%(self.options.grayscale_resolution)
+            conversionTypeText = 'Jarvis-Judice-Ninke (Res:%i)'%(self.options.imgGrayResolution)
             
-            if self.options.grayscale_resolution == 256:
+            if self.options.imgGrayResolution == 256:
                 matrice_BN = matrice
             else:
                 # create look up tabel
                 lookUpTabel = range(256)
-                #grayscale_resolution = 256 / self.options.grayscale_resolution
-                if self.options.grayscale_resolution > 1:
-                    a = (255.0/(self.options.grayscale_resolution-1))
+                #grayscale_resolution = 256 / self.options.imgGrayResolution
+                if self.options.imgGrayResolution > 1:
+                    a = (255.0/(self.options.imgGrayResolution-1))
                 else:  
                     a = 255.0
                 for idx in range(256):
@@ -561,7 +545,7 @@ class GcodeExport(inkex.Effect):
         ##############################################################################################################
         ## Generate G-Code
         ##############################################################################################################
-        if self.options.preview_only == False: #Genero Gcode solo se devo
+        if self.options.imgPreviewOnly == False: #Genero Gcode solo se devo
 
             def generateGCodeLine(source, values):
                 gCodeString = source
@@ -573,24 +557,29 @@ class GcodeExport(inkex.Effect):
             xOffset = 0.0          # set 0 point of G-Code
             yOffset = 0.0          # set 0 point of G-Code
 
-            maxPower = self.options.max_power
-            minPower = self.options.min_power
-            feedRate = self.options.speed_ON
-            accel_distance = self.options.acc_distance
-            zPos = self.options.z_level
-            abDiameter = self.options.rot_diameter
+            maxPower = self.options.gc1MaxPower
+            minPower = self.options.gc1MinPower
+            feedRate = self.options.gc1FeedRate
+            accel_distance = self.options.gc1AccDistance
+            zPos = self.options.gc1LevelZ
+            abDiameter = self.options.imgRotDiameter
 
-            scanType = self.options.scan_type
-            xZeroPoint = self.options.x_start_point
-            yZeroPoint = self.options.y_start_point
+            scanType = self.options.gc1ScanType
+            xZeroPoint = self.options.gc1ZeroPointX
+            yZeroPoint = self.options.gc1ZeroPointY
             #lineCmd = 'G0 X{XPOS} Y{YPOS}{NL}G1 X{XPOS} Y{YPOS} A{APOS} B{BPOS} F{FEED}'
             #pixelCmd = 'Mx{POWT} G1 X{XPOS} Y{YPOS} A{APOS} B{BPOS} S{POWF}'
             #lineCmd = '(Y={SCNL} {PDIR}){NL}G0 X{XPOS} Y{YPOS}{NL}({SCNC}) G1 X{XPOS} Y{YPOS} F{FEED}'
             #pixelCmd = '({SCNC}) G1 X{XPOS} Y{YPOS} Mx{POWT} {PCMT} '
-            lineCmd = self.options.line_code
-            pixelCmd = self.options.pixel_code
-            laserOnCmd = self.options.laseron
-            laserOffCmd = self.options.laseroff
+            lineCmd = self.options.gc1LineCode
+            pixelCmd = self.options.gc1PixelCode
+            laserOnCmd = self.options.gc1LaserOn
+            laserOffCmd = self.options.gc1LaserOff
+            laserOnOffThreshold = (0.5 * (maxPower-minPower) / 255.0) + minPower            
+
+            if maxPower <= minPower:
+                inkex.errormsg("Maximum laser power value must be greater then minimum laser power value!")
+
             
             GCODE_NL = '\n'
             valueList = {'NL':   GCODE_NL,
@@ -600,29 +589,29 @@ class GcodeExport(inkex.Effect):
                          'APOS': '0',
                          'BPOS': '0',
                          'FEED': '%g'%(feedRate),
-                         'POWT': '0',
-                         'POWF': '0',
-                         'PCMF': '',
-                         'PCMT': '',
-                         'SCNC': '0',
-                         'SCNL': '0',
-                         'PDIR': '=='}
+                         'POWT': '%g'%(minPower),
+                         'POWF': '%g'%(minPower),
+                         'PCMF': laserOffCmd,
+                         'PCMT': laserOffCmd,
+                         'SCNC': 'init',
+                         'SCNL': 'init',
+                         'PDIR': 'init'}
 
  
             ########################################## Start gCode
-            if self.options.flip_x == True:
+            if self.options.gc1FlipX == True:
                 for y in range(h):
                     matrice_BN[y].reverse()				
 
-            if self.options.flip_y == True: #Inverto asse Y solo se flip_y = False     
+            if self.options.gc1FlipY == True: #Inverto asse Y solo se flip_y = False     
                 #-> coordinate Cartesiane (False) Coordinate "informatiche" (True)
                 matrice_BN.reverse()				
 
             # distance between lines (steps)
-            if self.options.resolution < 1:
-                Scala = self.options.spot_size 
+            if self.options.imgResolution < 1:
+                Scala = self.options.imgSpotSize 
             else:
-                Scala = 1.0/float(self.options.resolution)
+                Scala = 1.0/float(self.options.imgResolution)
 
             if accel_distance <= 0:
                 accel_distance = Scala
@@ -698,12 +687,10 @@ class GcodeExport(inkex.Effect):
             file_gcode.write(';   by RKtech (based on 305 Engineering code)' + GCODE_NL)
             file_gcode.write(';' + GCODE_NL)
             file_gcode.write('; Image:'+ GCODE_NL)
-            file_gcode.write(';   Resolution:               %g x %g pixel'%(w, h) + GCODE_NL)
+            file_gcode.write(';   Pixel size:               %g x %g'%(w, h) + GCODE_NL)
             file_gcode.write(';   Size:                     %g x %g mm'%(w*Scala, h*Scala) + GCODE_NL)
-            file_gcode.write(';   Flip X:                   %s'%('Yes' if self.options.flip_x else 'No') + GCODE_NL)
-            file_gcode.write(';   Flip Y:                   %s'%('Yes' if self.options.flip_y else 'No') + GCODE_NL)
             file_gcode.write(';' + GCODE_NL)
-            file_gcode.write('; Parameters:'+ GCODE_NL)
+            file_gcode.write('; Parameter setting "%s":'%(self.options.gc1Setting)+ GCODE_NL)
             file_gcode.write(';   Zero point:               %s/%s'%(xOffsetText,yOffsetText) + GCODE_NL)
             file_gcode.write(';   Laser spot size           %g mm'%(Scala) + GCODE_NL)
             file_gcode.write(';   Engraving speed:          %g mm/min'%(feedRate) + GCODE_NL)
@@ -712,9 +699,44 @@ class GcodeExport(inkex.Effect):
             file_gcode.write(';   Acceleration distance:    %g mm'%(accel_distance) + GCODE_NL)
             file_gcode.write(';   Conversion algorithm:     %s'%(conversionTypeText) + GCODE_NL)
             file_gcode.write(';   Scan Type:                %s'%(scanTypeText) + GCODE_NL)
+            file_gcode.write(';   Flip X:                   %s'%('Yes' if self.options.gc1FlipX else 'No') + GCODE_NL)
+            file_gcode.write(';   Flip Y:                   %s'%('Yes' if self.options.gc1FlipY else 'No') + GCODE_NL)
+            if self.options.debug:
+                file_gcode.write(';' + GCODE_NL)
+                file_gcode.write('; Debug Parameters:'+ GCODE_NL)
+                file_gcode.write(';   --imgDirName              "%s"'%(self.options.imgDirName) + GCODE_NL)
+                file_gcode.write(';   --imgFileName             "%s"'%(self.options.imgFileName) + GCODE_NL)
+                file_gcode.write(';   --imgNumFileSuffix        "%s"'%(self.options.imgNumFileSuffix) + GCODE_NL)
+                file_gcode.write(';   --imgBGcolor              "%s"'%(self.options.imgBGcolor) + GCODE_NL)
+                file_gcode.write(';   --imgResolution           "%s"'%(self.options.imgResolution) + GCODE_NL)
+                file_gcode.write(';   --imgSpotSize             "%s"'%(self.options.imgSpotSize) + GCODE_NL)
+                file_gcode.write(';   --imgGrayType             "%s"'%(self.options.imgGrayType) + GCODE_NL)
+                file_gcode.write(';   --imgConvType             "%s"'%(self.options.imgConvType) + GCODE_NL)
+                file_gcode.write(';   --imgBWthreshold          "%s"'%(self.options.imgBWthreshold) + GCODE_NL)
+                file_gcode.write(';   --imgGrayResolution       "%s"'%(self.options.imgGrayResolution) + GCODE_NL)
+                file_gcode.write(';   --imgRotDiameter          "%s"'%(self.options.imgRotDiameter) + GCODE_NL)
+                file_gcode.write(';   --imgFullPage             "%s"'%(self.options.imgFullPage) + GCODE_NL)
+                file_gcode.write(';   --imgPreviewOnly          "%s"'%(self.options.imgPreviewOnly) + GCODE_NL)
+                file_gcode.write(';   --gc1Setting              "%s"'%(self.options.gc1Setting) + GCODE_NL)
+                file_gcode.write(';   --gc1StartCode            "%s"'%(self.options.gc1StartCode) + GCODE_NL)
+                file_gcode.write(';   --gc1PostCode             "%s"'%(self.options.gc1PostCode) + GCODE_NL)
+                file_gcode.write(';   --gc1LineCode             "%s"'%(self.options.gc1LineCode) + GCODE_NL)
+                file_gcode.write(';   --gc1PixelCode            "%s"'%(self.options.gc1PixelCode) + GCODE_NL)
+                file_gcode.write(';   --gc1LaserOn              "%s"'%(self.options.gc1LaserOn) + GCODE_NL)
+                file_gcode.write(';   --gc1LaserOff             "%s"'%(self.options.gc1LaserOff) + GCODE_NL)
+                file_gcode.write(';   --gc1FeedRate             "%s"'%(self.options.gc1FeedRate) + GCODE_NL)
+                file_gcode.write(';   --gc1MinPower             "%s"'%(self.options.gc1MinPower) + GCODE_NL)
+                file_gcode.write(';   --gc1MaxPower             "%s"'%(self.options.gc1MaxPower) + GCODE_NL)
+                file_gcode.write(';   --gc1AccDistance          "%s"'%(self.options.gc1AccDistance) + GCODE_NL)
+                file_gcode.write(';   --gc1LevelZ               "%s"'%(self.options.gc1LevelZ) + GCODE_NL)
+                file_gcode.write(';   --gc1FlipX                "%s"'%(self.options.gc1FlipX) + GCODE_NL)
+                file_gcode.write(';   --gc1FlipY                "%s"'%(self.options.gc1FlipY) + GCODE_NL)
+                file_gcode.write(';   --gc1ZeroPointX           "%s"'%(self.options.gc1ZeroPointX) + GCODE_NL)
+                file_gcode.write(';   --yStartPoint             "%s"'%(self.options.gc1ZeroPointY) + GCODE_NL)
+                file_gcode.write(';   --scanType                "%s"'%(self.options.gc1ScanType) + GCODE_NL)
             file_gcode.write(GCODE_NL)
             file_gcode.write('; Start Code' + GCODE_NL)	
-            file_gcode.write(generateGCodeLine(self.options.start_gcode, valueList) + GCODE_NL)	
+            file_gcode.write(generateGCodeLine(self.options.gc1StartCode, valueList) + GCODE_NL)	
 
             ########################################## Picture gCode
             file_gcode.write(GCODE_NL + '; Image Code' + GCODE_NL)	
@@ -740,7 +762,7 @@ class GcodeExport(inkex.Effect):
             
                 #file_gcode.write('; Y-Pos = ' + str(yPos) + '\n')
                 
-                # search for first and last pixel with laser on
+                # search for first and last pixel with laser on (Pixel value not white)
                 first_laser_on = -1
                 last_laser_on = -1
                 if scanX:
@@ -874,8 +896,8 @@ class GcodeExport(inkex.Effect):
                             valueList['BPOS'] = '%g'%(xPos * 360.0 / (math.pi * abDiameter))
                             valueList['POWT'] = '%g'%(powerTo)
                             valueList['POWF'] = '%g'%(powerFrom)
-                            valueList['PCMT'] = laserOnCmd if powerTo > minPower else laserOffCmd
-                            valueList['PCMF'] = laserOnCmd if powerFrom > minPower else laserOffCmd
+                            valueList['PCMT'] = laserOnCmd if powerTo > laserOnOffThreshold else laserOffCmd
+                            valueList['PCMF'] = laserOnCmd if powerFrom > laserOnOffThreshold else laserOffCmd
                             file_gcode.write(generateGCodeLine(pixelCmd, valueList) + GCODE_NL)
                     
                         laserPowerCange = False
@@ -927,11 +949,14 @@ class GcodeExport(inkex.Effect):
                     file_gcode.write(generateGCodeLine(pixelCmd, valueList) + GCODE_NL)
 
                     lastPosition = xPos if scanX else yPos
-                                
+
+                    valueList['SCNL'] = 'exit'
+                    valueList['SCNC'] = 'exit'
+                    valueList['PDIR'] = 'exit'
 
             ########################################## Post gCode
             file_gcode.write('; End Code' + GCODE_NL)
-            file_gcode.write(generateGCodeLine(self.options.post_gcode, valueList) + GCODE_NL)
+            file_gcode.write(generateGCodeLine(self.options.gc1PostCode, valueList) + GCODE_NL)
             file_gcode.close() #Chiudo il file
 
 

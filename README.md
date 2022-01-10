@@ -4,9 +4,16 @@ for Inkscape 0.9x
 
 ### Short Description
 
+**10.01.2022**
+
+* Rename and reorder parameters (also internally) and set more common default values
+* Add debug switch to write all (internal) parameters into the CGode file
+
+**08.01.2022**
+
 this is a fork of "305engineering raster2laser" code
 
-- Raster 2 Laser GCode generator is an extension to generate Gcode for a laser cutter/engraver (or pen plotter), it can generate various type of outputs from a simple B&W (on/off) to a more detailed Gray scale (pwm)
+- Raster 2 Laser GCode generator is an extension to generate GCode for a laser cutter/engraver (or pen plotter), it can generate various type of outputs from a simple B&W (on/off) to a more detailed Gray scale (pwm)
 - I added some more image processing functions and a new GCode generator
   - Added  dithering types (Simple2D, Floyd–Steinberg, Jarvis-Judice-Ninke)
   - Modify gray scale conversion with lookup table and any number of 2..256 gray steps

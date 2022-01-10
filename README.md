@@ -105,7 +105,7 @@ Possible variables to be used for this four parameters
 
 #### Image slicing
 
-Depending on the *Scan image lines* configuration the slicing is done horizontal (X or B) or vertical (Y or A). The slicing will always start top-left from the inkskape image. I will describe it for the horizontal slicing, vor vertical it is the same but 90° rotated.
+Depending on the `Scan image lines` configuration the slicing is done horizontal (X or B) or vertical (Y or A). The slicing will always start top-left from the inkskape image. I will describe it for the horizontal slicing, vor vertical it is the same but 90° rotated.
 
 In the scan line the most left and right not white pixel is searched. This is the beginning and end position of the engraving path and the laser should move here with constant velocity (feed rate). So the most left and right withe area is not used for the path calculation. With the setting `Distance for acceleration` an additional distance is added to the left and right of the engraving path with laser power set to `Minimum laser power value` to allow the machine to accelerate and decelerate. This will prevent darker/deeper engraving at the left and right side of the engraved picture. Even if this setting is set to 0, it will be added one pixel with laser power minimum on both sides.
 
@@ -139,8 +139,8 @@ Todo....
 | `Maximum laser power value`  | This value is put into the *{POWT}* variable if the image pixel is set black. |
 | `Distance for acceleration`  | This is the distance added to the left/right or top/bottom to allow the machine to accelerate and decelerate without affect to the engraving |
 | `Z position`                 | This value is put into the `{ZPOS}` variable                 |
-| `Flip X`                     | The pixel image data is flipped at the X axis (upside down) before prozessing the GCode (Preview image is not flipped). This is useful if your machine coordinate system is different from otheres or if mount a rotary axis 180° turned. To get the result in the same format then the inkscape image |
-| `Flip Y`                     | The pixel image data is flipped at the Y axis before prozessing the GCode (Preview image is not flipped). This is useful if your machine coordinate system is different from otheres or if mount a rotary axis 180° turned. To get the result in the same format then the inkscape image |
+| `Flip X`                     | The pixel image data is flipped at the X axis (upside down) before prozessing the GCode (Preview image is not flipped). This is useful if your machine coordinate system is different from otheres, if the rotary axis is mounted 180° turned or if you engrave on the backside of glass. To get the final result in the same format then the inkscape image |
+| `Flip Y`                     | The pixel image data is flipped at the Y axis before prozessing the GCode (Preview image is not flipped). |
 | `Zero point for width`       | This will set the zero point for the GCode coordinate system to `Left`, `Center` or `Right`. Flipping the image has no affect to this setting |
 | `Zero point for height`      | This will set the zero point for the GCode coordinate system to `Top`, `Middle` or `Bottom`. Flipping the image has no affect to this setting |
 | `Scan image lines`           | define the processing of the direction of the engraving path as described above in the slicing section. |

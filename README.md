@@ -81,8 +81,8 @@ The GCode generator didn't "produce" any kind of G or M commands in the script (
 | Post code               | This is the code placed at the end of the GCode file, the M2 command has to be placed here. I also switch off the laser power here. |
 | Start of line code      | This code line is generated at the beginning of a new scan line. I use this to go to the start position. the variables *{XPOS}* and *{YPOS}* are substituted with the coordinates. The acceleration distance is included here. you can use *{APOS}* and *{BPOS}* when you are using a rotary A or B axis, this values are in degree and calculated with the workpice diameter setting. Here A corespondent with Y and B with X. <br />*{PDIR}* will give an arrow with the **p**ath **dir**ection, and *{SCNL}* will give the **sc**a**n** **l**ine number. I use this for a comment in the GCode file. Also *{NL}* is possible. |
 | Power level change code | This code line is generated anytime the laser power level changes. Here you should use the *{PCMT}* variable to set the laser ON/OFF command or *{POWT}* variable to set the laser power value defined by the MIN/MAX value for white/black. Also *{XPOS}*, *{YPOS}*, *{APOS}* and *{BPOS}* can (must) be used here. |
-| Laser ON command        | when using the *{PCMT}* variable in the code config, it is substituted with this command when the image pixel is not white ( < 255). Not useful for gray-scale images |
-| Laser OFF command       | when using the *{PCMT}* variable in the code config, it is substituted with this command when the image pixel is white ( = 255). Not useful for gray-scale images |
+| Laser ON command        | when using the *{PCMT}* variable in the code config, it is substituted with this command when the image pixel is below 50% gray. Not useful for gray-scale images |
+| Laser OFF command       | when using the *{PCMT}* variable in the code config, it is substituted with this command when the image pixel is above 50% gray. Not useful for gray-scale images |
 
 ... to be continued
 

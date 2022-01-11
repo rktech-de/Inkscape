@@ -529,7 +529,7 @@ class GcodeExport(inkex.Effect):
                     matrice_BN[y][x] = pixl
         elif self.options.imgConvType == 9:
             #Grayscale
-            conversionTypeText = 'Jarvis-Judice-Ninke (Res:%i)'%(self.options.imgGrayResolution)
+            conversionTypeText = 'Grayscale (Res:%i)'%(self.options.imgGrayResolution)
             
             if self.options.imgGrayResolution == 256:
                 matrice_BN = matrice
@@ -775,7 +775,7 @@ class GcodeExport(inkex.Effect):
                     valueList['APOS'] = '%g'%(yPos * 360.0 / (math.pi * abDiameter))
                 else:
                     x = scanLine
-                    xPos = float(x)*Scala + yOffset
+                    xPos = float(x)*Scala + xOffset
                     valueList['XPOS'] = '%g'%(xPos)
                     valueList['BPOS'] = '%g'%(xPos * 360.0 / (math.pi * abDiameter))
                 valueList['SCNL'] = '%g'%(scanLine)

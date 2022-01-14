@@ -92,6 +92,7 @@
                 <param name="gc1PixelCode" type="string"  gui-text="Power level change code">G1 X{XPOS} Y{YPOS} S{POWT}</param>  <!-- or "G1 X{XPOS} Y{YPOS} S{POWT}" -->
                 <param name="gc1LaserOn" type="string"  gui-text="Laser on command">M3</param>
                 <param name="gc1LaserOff" type="string"  gui-text="Laser off command">M5</param>
+                <param name="gc1LOnThreshold" type="int" min="0" max="255" gui-text="Laser on threshold">254</param>
 
                 <param name="gc1FeedRate" type="int" min="1" max="10000" gui-text="Engraving feed rate [mm/min]">200</param>
 

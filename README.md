@@ -2,7 +2,12 @@
 
 for Inkscape 0.9x
 
-### Short Description
+### Changelog
+
+**13.01.2022**
+
+* add variable Pixel Value {PIXV} 
+* add configuration "Laser on threshold" to control laser on/off command
 
 **10.01.2022**
 
@@ -90,7 +95,7 @@ Possible variables to be used for this four parameters
 
 | Variable | description                                                  |
 | -------- | ------------------------------------------------------------ |
-| {NL}     | New line in the GCode file at this position, currently hard-coded with '\n'. At the end of an config string an newline is automatically added |
+| {NL}     | new line in the GCode file at this position, currently hard-coded with '\n'. At the end of an config string an newline is automatically added |
 | {XPOS}   | calculated X position                                        |
 | {YPOS}   | calculated Y position                                        |
 | {ZPOS}   | always the configured "Z level" value                        |
@@ -102,6 +107,9 @@ Possible variables to be used for this four parameters
 | {SCNL}   | actual scan line number for comment purpose                  |
 | {SCNC}   | actual column number for comment purpose                     |
 | {PDIR}   | depends on current scan line move direction. Will be: "->", "<-", "/\\" or "\\/" |
+| {POWM}   | configured value from `Minimum laser power value`            |
+| {POWX}   | configured value from `Maximum laser power value`            |
+| {PIXV}   | pixel value, intensity of the current pixel, 0 = Black, 255 = white, 256 = outside engraving path |
 
 #### Image slicing
 
@@ -132,8 +140,9 @@ Todo....
 | `Post code`                  | This is the code placed at the end of the GCode file, the M2 command has to be placed here. I also switch off the laser power here. |
 | `Start of line code`         | This code line is generated at the beginning of a new scan line. I use this to go to the start position. the variables *{XPOS}* and *{YPOS}* are substituted with the coordinates. The acceleration distance is included here. you can use *{APOS}* and *{BPOS}* when you are using a rotary A or B axis, this values are in degree and calculated with the workpice diameter setting. Here A corespondent with Y and B with X. <br />*{PDIR}* will give an arrow with the **p**ath **dir**ection, and *{SCNL}* will give the **sc**a**n** **l**ine number. I use this for a comment in the GCode file. Also *{NL}* is possible. |
 | `Power level change code`    | This code line is generated anytime the laser power level changes. Here you should use the *{PCMT}* variable to set the laser ON/OFF command or *{POWT}* variable to set the laser power value defined by the MIN/MAX value for white/black. Also *{XPOS}*, *{YPOS}*, *{APOS}* and *{BPOS}* can (must) be used here. |
-| `Laser ON command`           | when using the *{PCMT}* variable in the code config, it is substituted with this command when the image pixel is below 50% gray. Not useful for gray-scale images |
-| `Laser OFF command`          | when using the *{PCMT}* variable in the code config, it is substituted with this command when the image pixel is above 50% gray. Not useful for gray-scale images |
+| `Laser ON command`           | When using the *{PCMT}* variable in the code config, it is substituted with this command setting when the image pixel color is below or equal the `Laser on threshold` setting. |
+| `Laser OFF command`          | When using the *{PCMT}* variable in the code config, it is substituted with this command setting when the image pixel color is above  the `Laser on threshold` setting. |
+| `Laser on threshold`         | This value decide whether  the `Laser ON command` or `Laser OFF command` setting is used. If the image pixel value is below or equal the threshold the `Laser ON command`  setting is used for the *{PCMT}* variable otherwise the  `Laser OFF command` setting. A value of 0 means black and 255 is for a white pixel color. |
 | `engraving feed rate`        | This value is put into the *{FEED}* variable                 |
 | `Minimum laser power value`  | This value is put into the *{POWT}* variable if the image pixel is set white. |
 | `Maximum laser power value`  | This value is put into the *{POWT}* variable if the image pixel is set black. |
@@ -143,7 +152,7 @@ Todo....
 | `Flip Y`                     | The pixel image data is flipped at the Y axis before prozessing the GCode (Preview image is not flipped). |
 | `Zero point for width`       | This will set the zero point for the GCode coordinate system to `Left`, `Center` or `Right`. Flipping the image has no affect to this setting |
 | `Zero point for height`      | This will set the zero point for the GCode coordinate system to `Top`, `Middle` or `Bottom`. Flipping the image has no affect to this setting |
-| `Scan image lines`           | define the processing of the direction of the engraving path as described above in the slicing section. |
+| `Scan image lines`           | Define the processing of the direction of the engraving path as described above in the slicing section. |
 
 ### Note
 

@@ -54,6 +54,7 @@ import math
 import inkex
 import png
 import array
+import collections
 
 # Pull Request #23
 # from Pull Request "https://github.com/305engineering/Inkscape/pull/23"
@@ -115,6 +116,7 @@ class GcodeExport(inkex.Effect):
         self.OptionParser.add_option("","--gc1PixelCode", action="store", type="string", dest="gc1PixelCode", default="", help="")
         self.OptionParser.add_option("","--gc1LaserOn", action="store", type="string", dest="gc1LaserOn", default="M03", help="")
         self.OptionParser.add_option("","--gc1LaserOff", action="store", type="string", dest="gc1LaserOff", default="M05", help="")
+        self.OptionParser.add_option("","--gc1LOnThreshold",action="store", type="int", dest="gc1LOnThreshold", default="254",help="") 
         self.OptionParser.add_option("","--gc1FeedRate",action="store", type="int", dest="gc1FeedRate", default="200",help="") 
         self.OptionParser.add_option("","--gc1MinPower",action="store", type="float", dest="gc1MinPower", default="0.0",help="")
         self.OptionParser.add_option("","--gc1MaxPower",action="store", type="float", dest="gc1MaxPower", default="100.0",help="")
@@ -587,35 +589,36 @@ class GcodeExport(inkex.Effect):
             scanType = self.options.gc1ScanType
             xZeroPoint = self.options.gc1ZeroPointX
             yZeroPoint = self.options.gc1ZeroPointY
-            #lineCmd = 'G0 X{XPOS} Y{YPOS}{NL}G1 X{XPOS} Y{YPOS} A{APOS} B{BPOS} F{FEED}'
-            #pixelCmd = 'Mx{POWT} G1 X{XPOS} Y{YPOS} A{APOS} B{BPOS} S{POWF}'
-            #lineCmd = '(Y={SCNL} {PDIR}){NL}G0 X{XPOS} Y{YPOS}{NL}({SCNC}) G1 X{XPOS} Y{YPOS} F{FEED}'
-            #pixelCmd = '({SCNC}) G1 X{XPOS} Y{YPOS} Mx{POWT} {PCMT} '
             lineCmd = self.options.gc1LineCode
             pixelCmd = self.options.gc1PixelCode
             laserOnCmd = self.options.gc1LaserOn
             laserOffCmd = self.options.gc1LaserOff
-            laserOnOffThreshold = (0.5 * (maxPower-minPower) / 255.0) + minPower            
+            laserOnThreshold = self.options.gc1LOnThreshold
+            #laserOnThreshold = 256 / 2
 
             if maxPower <= minPower:
                 inkex.errormsg("Maximum laser power value must be greater then minimum laser power value!")
 
             
             GCODE_NL = '\n'
-            valueList = {'NL':   GCODE_NL,
-                         'XPOS': '0',
-                         'YPOS': '0',
-                         'ZPOS': '%g'%(zPos),
-                         'APOS': '0',
-                         'BPOS': '0',
-                         'FEED': '%g'%(feedRate),
-                         'POWT': '%g'%(minPower),
-                         'POWF': '%g'%(minPower),
-                         'PCMF': laserOffCmd,
-                         'PCMT': laserOffCmd,
-                         'SCNC': 'init',
-                         'SCNL': 'init',
-                         'PDIR': 'init'}
+            valueList = collections.OrderedDict()
+            valueList['PCMF'] = laserOffCmd     # must be first, so it is parsed fist and can include the other variables
+            valueList['PCMT'] = laserOffCmd     # must be first, so it is parsed fist and can include the other variables
+            valueList['NL'] =   GCODE_NL
+            valueList['XPOS'] = '0'
+            valueList['YPOS'] = '0'
+            valueList['ZPOS'] = '%g'%(zPos)
+            valueList['APOS'] = '0'
+            valueList['BPOS'] = '0'
+            valueList['FEED'] = '%g'%(feedRate)
+            valueList['POWT'] = '%g'%(minPower)
+            valueList['POWF'] = '%g'%(minPower)
+            valueList['SCNC'] = 'init'
+            valueList['SCNL'] = 'init'
+            valueList['PDIR'] = 'init'
+            valueList['POWM'] = '%g'%(minPower)
+            valueList['POWX'] = '%g'%(maxPower)
+            valueList['PIXV'] = '%g'%(WHITE+1) # Pixel Value (0=Black ... 255=White, 256=travel path)
 
  
             ########################################## Start gCode
@@ -744,6 +747,7 @@ class GcodeExport(inkex.Effect):
                 file_gcode.write(';   --gc1PixelCode            "%s"'%(self.options.gc1PixelCode) + GCODE_NL)
                 file_gcode.write(';   --gc1LaserOn              "%s"'%(self.options.gc1LaserOn) + GCODE_NL)
                 file_gcode.write(';   --gc1LaserOff             "%s"'%(self.options.gc1LaserOff) + GCODE_NL)
+                file_gcode.write(';   --gc1LOnThreshold         "%s"'%(self.options.gc1LOnThreshold) + GCODE_NL)
                 file_gcode.write(';   --gc1FeedRate             "%s"'%(self.options.gc1FeedRate) + GCODE_NL)
                 file_gcode.write(';   --gc1MinPower             "%s"'%(self.options.gc1MinPower) + GCODE_NL)
                 file_gcode.write(';   --gc1MaxPower             "%s"'%(self.options.gc1MaxPower) + GCODE_NL)
@@ -872,8 +876,12 @@ class GcodeExport(inkex.Effect):
                         xPos = float(x+reverseOffset)*Scala - accelDist + xOffset
                     else:
                         yPos = -1.0 * (float(y+reverseOffset)*Scala - accelDist) + yOffset
+############################
+                    pixelValue     = WHITE + 1      # travel phase
+                    pixelValueFrom = pixelValue
+                    pixelValueTo   = pixelValue
 
-                    power = minPower
+                    power     = minPower
                     powerFrom = power
                     powerTo   = power
 
@@ -887,6 +895,8 @@ class GcodeExport(inkex.Effect):
                     valueList['POWF'] = '%g'%(powerFrom)
                     valueList['PCMT'] = laserOffCmd
                     valueList['PCMF'] = laserOffCmd
+                    valueList['PIXV'] = '%g'%(pixelValue)
+                    
                     file_gcode.write(generateGCodeLine(lineCmd, valueList) + GCODE_NL)
 
                     # xPos = float(x)*Scala + xOffset
@@ -903,9 +913,13 @@ class GcodeExport(inkex.Effect):
                                 xPos = float(x+reverseOffset)*Scala + xOffset
                             else:
                                 yPos = -1.0 * float(y+reverseOffset)*Scala + yOffset
+
+                            pixelValueTo   = pixelValue
+                            pixelValue     = matrice_BN[y][x]
+                            pixelValueFrom = pixelValue
                                 
                             powerTo   = power
-                            power = (float(255-matrice_BN[y][x]) * (maxPower-minPower) / 255.0) + minPower
+                            power = (float(WHITE - pixelValue) * (maxPower - minPower) / 255.0) + minPower
                             powerFrom = power
 
                             valueList['SCNC'] = '%g'%(scanColumn+reverseOffset)    
@@ -916,8 +930,9 @@ class GcodeExport(inkex.Effect):
                             valueList['BPOS'] = '%g'%(xPos * 360.0 / (math.pi * abDiameter))
                             valueList['POWT'] = '%g'%(powerTo)
                             valueList['POWF'] = '%g'%(powerFrom)
-                            valueList['PCMT'] = laserOnCmd if powerTo > laserOnOffThreshold else laserOffCmd
-                            valueList['PCMF'] = laserOnCmd if powerFrom > laserOnOffThreshold else laserOffCmd
+                            valueList['PCMT'] = laserOnCmd if pixelValueTo   <= laserOnThreshold else laserOffCmd
+                            valueList['PCMF'] = laserOnCmd if pixelValueFrom <= laserOnThreshold else laserOffCmd
+                            valueList['PIXV'] = '%g'%(pixelValue)
                             file_gcode.write(generateGCodeLine(pixelCmd, valueList) + GCODE_NL)
                     
                         laserPowerCange = False
@@ -934,6 +949,10 @@ class GcodeExport(inkex.Effect):
                     else:
                         yPos = -1.0 * float(y+1-reverseOffset)*Scala + yOffset
                         
+                    pixelValueTo   = pixelValue
+                    pixelValue     = WHITE + 1      # travel phase
+                    pixelValueFrom = pixelValue
+
                     powerTo   = power
                     power = minPower
                     powerFrom = power
@@ -946,8 +965,9 @@ class GcodeExport(inkex.Effect):
                     valueList['BPOS'] = '%g'%(xPos * 360.0 / (math.pi * abDiameter))
                     valueList['POWT'] = '%g'%(powerTo)
                     valueList['POWF'] = '%g'%(powerFrom)
-                    valueList['PCMT'] = laserOnCmd if powerTo > minPower else laserOffCmd
+                    valueList['PCMT'] = laserOnCmd if pixelValueTo <= laserOnThreshold else laserOffCmd
                     valueList['PCMF'] = laserOffCmd
+                    valueList['PIXV'] = '%g'%(pixelValue)
                     file_gcode.write(generateGCodeLine(pixelCmd, valueList) + GCODE_NL)
 
                     # decelerate phase
@@ -956,8 +976,10 @@ class GcodeExport(inkex.Effect):
                     else:
                         yPos = -1.0 * (float(y+1-reverseOffset)*Scala + accelDist) + yOffset
 
-                    powerTo   = power
+                    pixelValueTo   = pixelValue
 
+                    powerTo   = power
+                    
                     valueList['SCNC'] = 'dec'    
                     valueList['XPOS'] = '%g'%(xPos)
                     valueList['YPOS'] = '%g'%(yPos)
@@ -966,6 +988,7 @@ class GcodeExport(inkex.Effect):
                     valueList['BPOS'] = '%g'%(xPos * 360.0 / (math.pi * abDiameter))
                     valueList['POWT'] = '%g'%(powerTo)
                     valueList['PCMT'] = laserOffCmd
+                    valueList['PIXV'] = '%g'%(pixelValue)
                     file_gcode.write(generateGCodeLine(pixelCmd, valueList) + GCODE_NL)
 
                     lastPosition = xPos if scanX else yPos

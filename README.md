@@ -4,6 +4,11 @@ for Inkscape 0.9x
 
 ### Changelog
 
+**15.01.2022**
+
+* add new configuration "Zig zag offset"
+* fix: image was shifted by one pixel in y direction
+
 **13.01.2022**
 
 * add variable Pixel Value {PIXV} 
@@ -143,16 +148,19 @@ Todo....
 | `Laser ON command`           | When using the *{PCMT}* variable in the code config, it is substituted with this command setting when the image pixel color is below or equal the `Laser on threshold` setting. |
 | `Laser OFF command`          | When using the *{PCMT}* variable in the code config, it is substituted with this command setting when the image pixel color is above  the `Laser on threshold` setting. |
 | `Laser on threshold`         | This value decide whether  the `Laser ON command` or `Laser OFF command` setting is used. If the image pixel value is below or equal the threshold the `Laser ON command`  setting is used for the *{PCMT}* variable otherwise the  `Laser OFF command` setting. A value of 0 means black and 255 is for a white pixel color. |
-| `engraving feed rate`        | This value is put into the *{FEED}* variable                 |
+| `engraving feed rate`        | This value is put into the *{FEED}* variable.                |
 | `Minimum laser power value`  | This value is put into the *{POWT}* variable if the image pixel is set white. |
 | `Maximum laser power value`  | This value is put into the *{POWT}* variable if the image pixel is set black. |
-| `Distance for acceleration`  | This is the distance added to the left/right or top/bottom to allow the machine to accelerate and decelerate without affect to the engraving |
-| `Z position`                 | This value is put into the `{ZPOS}` variable                 |
+| `Distance for acceleration`  | This is the distance added to the left/right or top/bottom to allow the machine to accelerate and decelerate without affect to the engraving. |
+| `Z position`                 | This value is put into the `{ZPOS}` variable.                |
 | `Flip X`                     | The pixel image data is flipped at the X axis (upside down) before prozessing the GCode (Preview image is not flipped). This is useful if your machine coordinate system is different from otheres, if the rotary axis is mounted 180° turned or if you engrave on the backside of glass. To get the final result in the same format then the inkscape image |
 | `Flip Y`                     | The pixel image data is flipped at the Y axis before prozessing the GCode (Preview image is not flipped). |
-| `Zero point for width`       | This will set the zero point for the GCode coordinate system to `Left`, `Center` or `Right`. Flipping the image has no affect to this setting |
-| `Zero point for height`      | This will set the zero point for the GCode coordinate system to `Top`, `Middle` or `Bottom`. Flipping the image has no affect to this setting |
+| `Zero point for width`       | This will set the zero point for the GCode coordinate system to `Left`, `Center` or `Right`. Flipping the image has no affect to this setting. |
+| `Zero point for height`      | This will set the zero point for the GCode coordinate system to `Top`, `Middle` or `Bottom`. Flipping the image has no affect to this setting. |
 | `Scan image lines`           | Define the processing of the direction of the engraving path as described above in the slicing section. |
+| `Zig zag offset`             | when using `Zig Zag X` or `Fastest X` the offset value is added to X position calculation when move is right to left, same for Y position on bottom to top moves. this can be used for backlash compensation and/or laser power time delays. |
+
+
 
 ### Note
 

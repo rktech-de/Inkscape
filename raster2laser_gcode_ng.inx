@@ -126,6 +126,7 @@
                         <_item value="6">Zig zag Y</_item>
                         <_item value="7">Fastest Y</_item>
                 </param>
+                <param name="gc1ZigZagOffset" type="float" precision="3" min="-10.0" max="10.0" gui-text="Zig zag offset [mm]">0.0</param>
 
                 
 

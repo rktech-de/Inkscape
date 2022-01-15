@@ -127,6 +127,7 @@ class GcodeExport(inkex.Effect):
         self.OptionParser.add_option("","--gc1ZeroPointX",action="store", type="int", dest="gc1ZeroPointX", default="0",help="")
         self.OptionParser.add_option("","--gc1ZeroPointY",action="store", type="int", dest="gc1ZeroPointY", default="0",help="")
         self.OptionParser.add_option("","--gc1ScanType",action="store", type="int", dest="gc1ScanType", default="3",help="")
+        self.OptionParser.add_option("","--gc1ZigZagOffset",action="store", type="float", dest="gc1ZigZagOffset", default="0",help="")
 
             
 ######## 	Richiamata da __init__()
@@ -219,11 +220,12 @@ class GcodeExport(inkex.Effect):
 
 
         if self.options.imgFullPage:
-            # export page
+            # export full page
+            # inkscape --verb EditSelectAll 
             #command="inkscape -C -e \"%s\" -b\"%s\" %s -d %s" % (pos_file_png_exported,bg_color,current_file,DPI) #Comando da linea di comando per esportare in PNG
             command='inkscape -C -e "%s" -b"%s" %s -d %s'%(pos_file_png_exported,bg_color,current_file,DPI) #Comando da linea di comando per esportare in PNG
         else:
-            #export drawing
+            #export drawing(s) outline
             command='inkscape -D -e "%s" -b"%s" %s -d %s'%(pos_file_png_exported,bg_color,current_file,DPI) #Comando da linea di comando per esportare in PNG
                                 
         p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -660,11 +662,11 @@ class GcodeExport(inkex.Effect):
                 yOffsetText = 'Top'
             elif yZeroPoint == 1:
                 # middle
-                yOffset = float(h-1) * Scala / 2.0
+                yOffset = float(h) * Scala / 2.0
                 yOffsetText = 'Middle'
             elif yZeroPoint == 2:
                 # bottom
-                yOffset = float(h-1) * Scala
+                yOffset = float(h) * Scala
                 yOffsetText = 'Bottom'
 
             scanTypeText = 'unknown'
@@ -758,6 +760,7 @@ class GcodeExport(inkex.Effect):
                 file_gcode.write(';   --gc1ZeroPointX           "%s"'%(self.options.gc1ZeroPointX) + GCODE_NL)
                 file_gcode.write(';   --gc1ZeroPointY           "%s"'%(self.options.gc1ZeroPointY) + GCODE_NL)
                 file_gcode.write(';   --gc1ScanType             "%s"'%(self.options.gc1ScanType) + GCODE_NL)
+                file_gcode.write(';   --gc1ZigZagOffset         "%s"'%(self.options.gc1ZigZagOffset) + GCODE_NL)
             file_gcode.write(GCODE_NL)
             file_gcode.write('; Start Code' + GCODE_NL)	
             file_gcode.write(generateGCodeLine(self.options.gc1StartCode, valueList) + GCODE_NL)	
@@ -766,6 +769,7 @@ class GcodeExport(inkex.Effect):
             file_gcode.write(GCODE_NL + '; Image Code' + GCODE_NL)	
 
             lastPosition = 0.0
+            zigZagOffset = 0.0
             scanLeftRight = False
 
             scanLines = range(h) if scanX else range(w)
@@ -857,7 +861,9 @@ class GcodeExport(inkex.Effect):
                             directionCountY = 1
                         reverseOffset = 0
                         accelDist = accel_distance
-                        valueList['PDIR'] = '->' if scanX else '\/'   
+                        valueList['PDIR'] = '->' if scanX else '\/'
+                        zigZagOffset = 0.0
+
                     else:
                         # right to left / bottom to top
                         scanColumns = range(last_laser_on, first_laser_on-1, -1)
@@ -870,13 +876,14 @@ class GcodeExport(inkex.Effect):
                         reverseOffset = 1
                         accelDist = 0.0 - accel_distance
                         valueList['PDIR'] = '<-' if scanX else '/\\'    
+                        zigZagOffset = self.options.gc1ZigZagOffset
 
                     # accelerate phase
                     if scanX:
-                        xPos = float(x+reverseOffset)*Scala - accelDist + xOffset
+                        xPos = float(x+reverseOffset)*Scala - accelDist + xOffset + zigZagOffset
                     else:
-                        yPos = -1.0 * (float(y+reverseOffset)*Scala - accelDist) + yOffset
-############################
+                        yPos = -1.0 * (float(y+reverseOffset)*Scala - accelDist) + yOffset + zigZagOffset
+
                     pixelValue     = WHITE + 1      # travel phase
                     pixelValueFrom = pixelValue
                     pixelValueTo   = pixelValue
@@ -910,9 +917,9 @@ class GcodeExport(inkex.Effect):
                             
                         if laserPowerCange:
                             if scanX:
-                                xPos = float(x+reverseOffset)*Scala + xOffset
+                                xPos = float(x+reverseOffset)*Scala + xOffset + zigZagOffset
                             else:
-                                yPos = -1.0 * float(y+reverseOffset)*Scala + yOffset
+                                yPos = -1.0 * float(y+reverseOffset)*Scala + yOffset + zigZagOffset
 
                             pixelValueTo   = pixelValue
                             pixelValue     = matrice_BN[y][x]
@@ -945,16 +952,16 @@ class GcodeExport(inkex.Effect):
                             #print(x, matrice_BN[y][x], matrice_BN[y][x+directionCount], laserPowerCange)
 
                     if scanX:
-                        xPos = float(x+1-reverseOffset)*Scala + xOffset
+                        xPos = float(x+1-reverseOffset)*Scala + xOffset + zigZagOffset
                     else:
-                        yPos = -1.0 * float(y+1-reverseOffset)*Scala + yOffset
+                        yPos = -1.0 * float(y+1-reverseOffset)*Scala + yOffset + zigZagOffset
                         
                     pixelValueTo   = pixelValue
                     pixelValue     = WHITE + 1      # travel phase
                     pixelValueFrom = pixelValue
 
                     powerTo   = power
-                    power = minPower
+                    power     = minPower
                     powerFrom = power
 
                     valueList['SCNC'] = '%g'%(scanColumn+1-reverseOffset)    
@@ -972,13 +979,13 @@ class GcodeExport(inkex.Effect):
 
                     # decelerate phase
                     if scanX:
-                        xPos = float(x+1-reverseOffset)*Scala + accelDist + xOffset
+                        xPos = float(x+1-reverseOffset)*Scala + accelDist + xOffset + zigZagOffset
                     else:
-                        yPos = -1.0 * (float(y+1-reverseOffset)*Scala + accelDist) + yOffset
+                        yPos = -1.0 * (float(y+1-reverseOffset)*Scala + accelDist) + yOffset + zigZagOffset
 
                     pixelValueTo   = pixelValue
 
-                    powerTo   = power
+                    powerTo = power
                     
                     valueList['SCNC'] = 'dec'    
                     valueList['XPOS'] = '%g'%(xPos)

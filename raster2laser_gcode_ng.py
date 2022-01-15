@@ -577,6 +577,10 @@ class GcodeExport(inkex.Effect):
                     gCodeString = gCodeString.replace('{'+key+'}', values[key])
                     
                 return gCodeString
+            
+            def floatToString(floatValue):
+                result = ('%.5f' % floatValue).rstrip('0').rstrip('.')
+                return '0' if result == '-0' else result
 
             xOffset = 0.0          # set 0 point of G-Code
             yOffset = 0.0          # set 0 point of G-Code
@@ -609,18 +613,18 @@ class GcodeExport(inkex.Effect):
             valueList['NL'] =   GCODE_NL
             valueList['XPOS'] = '0'
             valueList['YPOS'] = '0'
-            valueList['ZPOS'] = '%g'%(zPos)
+            valueList['ZPOS'] = '%s'%(floatToString(zPos))
             valueList['APOS'] = '0'
             valueList['BPOS'] = '0'
-            valueList['FEED'] = '%g'%(feedRate)
-            valueList['POWT'] = '%g'%(minPower)
-            valueList['POWF'] = '%g'%(minPower)
+            valueList['FEED'] = '%s'%(floatToString(feedRate))
+            valueList['POWT'] = '%s'%(floatToString(minPower))
+            valueList['POWF'] = '%s'%(floatToString(minPower))
             valueList['SCNC'] = 'init'
             valueList['SCNL'] = 'init'
             valueList['PDIR'] = 'init'
-            valueList['POWM'] = '%g'%(minPower)
-            valueList['POWX'] = '%g'%(maxPower)
-            valueList['PIXV'] = '%g'%(WHITE+1) # Pixel Value (0=Black ... 255=White, 256=travel path)
+            valueList['POWM'] = '%s'%(floatToString(minPower))
+            valueList['POWX'] = '%s'%(floatToString(maxPower))
+            valueList['PIXV'] = '%i'%(WHITE+1) # Pixel Value (0=Black ... 255=White, 256=travel path)
 
  
             ########################################## Start gCode
@@ -712,16 +716,16 @@ class GcodeExport(inkex.Effect):
             file_gcode.write(';   by RKtech (based on 305 Engineering code)' + GCODE_NL)
             file_gcode.write(';' + GCODE_NL)
             file_gcode.write('; Image:'+ GCODE_NL)
-            file_gcode.write(';   Pixel size:               %g x %g'%(w, h) + GCODE_NL)
-            file_gcode.write(';   Size:                     %g x %g mm'%(w*Scala, h*Scala) + GCODE_NL)
+            file_gcode.write(';   Pixel size:               %i x %i'%(w, h) + GCODE_NL)
+            file_gcode.write(';   Size:                     %s x %s mm'%(floatToString(w*Scala), floatToString(h*Scala)) + GCODE_NL)
             file_gcode.write(';' + GCODE_NL)
             file_gcode.write('; Parameter setting "%s":'%(self.options.gc1Setting)+ GCODE_NL)
             file_gcode.write(';   Zero point:               %s/%s'%(xOffsetText,yOffsetText) + GCODE_NL)
-            file_gcode.write(';   Laser spot size           %g mm'%(Scala) + GCODE_NL)
-            file_gcode.write(';   Engraving speed:          %g mm/min'%(feedRate) + GCODE_NL)
-            file_gcode.write(';   Minimum power value:      %g'%(minPower) + GCODE_NL)
-            file_gcode.write(';   Maximum power value:      %g'%(maxPower) + GCODE_NL)
-            file_gcode.write(';   Acceleration distance:    %g mm'%(accel_distance) + GCODE_NL)
+            file_gcode.write(';   Laser spot size           %s mm'%(floatToString(Scala)) + GCODE_NL)
+            file_gcode.write(';   Engraving speed:          %s mm/min'%(floatToString(feedRate)) + GCODE_NL)
+            file_gcode.write(';   Minimum power value:      %s'%(floatToString(minPower)) + GCODE_NL)
+            file_gcode.write(';   Maximum power value:      %s'%(floatToString(maxPower)) + GCODE_NL)
+            file_gcode.write(';   Acceleration distance:    %s mm'%(floatToString(accel_distance)) + GCODE_NL)
             file_gcode.write(';   Conversion algorithm:     %s'%(conversionTypeText) + GCODE_NL)
             file_gcode.write(';   Scan Type:                %s'%(scanTypeText) + GCODE_NL)
             file_gcode.write(';   Flip X:                   %s'%('Yes' if self.options.gc1FlipX else 'No') + GCODE_NL)
@@ -779,14 +783,14 @@ class GcodeExport(inkex.Effect):
                 if scanX:
                     y = scanLine
                     yPos = -1.0 * float(y)*Scala + yOffset
-                    valueList['YPOS'] = '%g'%(yPos)
-                    valueList['APOS'] = '%g'%(yPos * 360.0 / (math.pi * abDiameter))
+                    valueList['YPOS'] = '%s'%(floatToString(yPos))
+                    valueList['APOS'] = '%s'%(floatToString(yPos * 360.0 / (math.pi * abDiameter)))
                 else:
                     x = scanLine
                     xPos = float(x)*Scala + xOffset
-                    valueList['XPOS'] = '%g'%(xPos)
-                    valueList['BPOS'] = '%g'%(xPos * 360.0 / (math.pi * abDiameter))
-                valueList['SCNL'] = '%g'%(scanLine)
+                    valueList['XPOS'] = '%s'%(floatToString(xPos))
+                    valueList['BPOS'] = '%s'%(floatToString(xPos * 360.0 / (math.pi * abDiameter)))
+                valueList['SCNL'] = '%i'%(scanLine)
             
                 #file_gcode.write('; Y-Pos = ' + str(yPos) + '\n')
                 
@@ -893,16 +897,16 @@ class GcodeExport(inkex.Effect):
                     powerTo   = power
 
                     valueList['SCNC'] = 'acc'
-                    valueList['XPOS'] = '%g'%(xPos)
-                    valueList['YPOS'] = '%g'%(yPos)
-                    valueList['ZPOS'] = '%g'%(zPos)
-                    valueList['APOS'] = '%g'%(yPos * 360.0 / (math.pi * abDiameter))
-                    valueList['BPOS'] = '%g'%(xPos * 360.0 / (math.pi * abDiameter))
-                    valueList['POWT'] = '%g'%(powerTo)
-                    valueList['POWF'] = '%g'%(powerFrom)
+                    valueList['XPOS'] = '%s'%(floatToString(xPos))
+                    valueList['YPOS'] = '%s'%(floatToString(yPos))
+                    valueList['ZPOS'] = '%s'%(floatToString(zPos))
+                    valueList['APOS'] = '%s'%(floatToString(yPos * 360.0 / (math.pi * abDiameter)))
+                    valueList['BPOS'] = '%s'%(floatToString(xPos * 360.0 / (math.pi * abDiameter)))
+                    valueList['POWT'] = '%s'%(floatToString(powerTo))
+                    valueList['POWF'] = '%s'%(floatToString(powerFrom))
                     valueList['PCMT'] = laserOffCmd
                     valueList['PCMF'] = laserOffCmd
-                    valueList['PIXV'] = '%g'%(pixelValue)
+                    valueList['PIXV'] = '%i'%(pixelValue)
                     
                     file_gcode.write(generateGCodeLine(lineCmd, valueList) + GCODE_NL)
 
@@ -929,17 +933,17 @@ class GcodeExport(inkex.Effect):
                             power = (float(WHITE - pixelValue) * (maxPower - minPower) / 255.0) + minPower
                             powerFrom = power
 
-                            valueList['SCNC'] = '%g'%(scanColumn+reverseOffset)    
-                            valueList['XPOS'] = '%g'%(xPos)
-                            valueList['YPOS'] = '%g'%(yPos)
-                            valueList['ZPOS'] = '%g'%(zPos)
-                            valueList['APOS'] = '%g'%(yPos * 360.0 / (math.pi * abDiameter))
-                            valueList['BPOS'] = '%g'%(xPos * 360.0 / (math.pi * abDiameter))
-                            valueList['POWT'] = '%g'%(powerTo)
-                            valueList['POWF'] = '%g'%(powerFrom)
+                            valueList['SCNC'] = '%i'%(scanColumn+reverseOffset)    
+                            valueList['XPOS'] = '%s'%(floatToString(xPos))
+                            valueList['YPOS'] = '%s'%(floatToString(yPos))
+                            valueList['ZPOS'] = '%s'%(floatToString(zPos))
+                            valueList['APOS'] = '%s'%(floatToString(yPos * 360.0 / (math.pi * abDiameter)))
+                            valueList['BPOS'] = '%s'%(floatToString(xPos * 360.0 / (math.pi * abDiameter)))
+                            valueList['POWT'] = '%s'%(floatToString(powerTo))
+                            valueList['POWF'] = '%s'%(floatToString(powerFrom))
                             valueList['PCMT'] = laserOnCmd if pixelValueTo   <= laserOnThreshold else laserOffCmd
                             valueList['PCMF'] = laserOnCmd if pixelValueFrom <= laserOnThreshold else laserOffCmd
-                            valueList['PIXV'] = '%g'%(pixelValue)
+                            valueList['PIXV'] = '%i'%(pixelValue)
                             file_gcode.write(generateGCodeLine(pixelCmd, valueList) + GCODE_NL)
                     
                         laserPowerCange = False
@@ -964,17 +968,17 @@ class GcodeExport(inkex.Effect):
                     power     = minPower
                     powerFrom = power
 
-                    valueList['SCNC'] = '%g'%(scanColumn+1-reverseOffset)    
-                    valueList['XPOS'] = '%g'%(xPos)
-                    valueList['YPOS'] = '%g'%(yPos)
-                    valueList['ZPOS'] = '%g'%(zPos)
-                    valueList['APOS'] = '%g'%(yPos * 360.0 / (math.pi * abDiameter))
-                    valueList['BPOS'] = '%g'%(xPos * 360.0 / (math.pi * abDiameter))
-                    valueList['POWT'] = '%g'%(powerTo)
-                    valueList['POWF'] = '%g'%(powerFrom)
+                    valueList['SCNC'] = '%i'%(scanColumn+1-reverseOffset)    
+                    valueList['XPOS'] = '%s'%(floatToString(xPos))
+                    valueList['YPOS'] = '%s'%(floatToString(yPos))
+                    valueList['ZPOS'] = '%s'%(floatToString(zPos))
+                    valueList['APOS'] = '%s'%(floatToString(yPos * 360.0 / (math.pi * abDiameter)))
+                    valueList['BPOS'] = '%s'%(floatToString(xPos * 360.0 / (math.pi * abDiameter)))
+                    valueList['POWT'] = '%s'%(floatToString(powerTo))
+                    valueList['POWF'] = '%s'%(floatToString(powerFrom))
                     valueList['PCMT'] = laserOnCmd if pixelValueTo <= laserOnThreshold else laserOffCmd
                     valueList['PCMF'] = laserOffCmd
-                    valueList['PIXV'] = '%g'%(pixelValue)
+                    valueList['PIXV'] = '%i'%(pixelValue)
                     file_gcode.write(generateGCodeLine(pixelCmd, valueList) + GCODE_NL)
 
                     # decelerate phase
@@ -988,14 +992,14 @@ class GcodeExport(inkex.Effect):
                     powerTo = power
                     
                     valueList['SCNC'] = 'dec'    
-                    valueList['XPOS'] = '%g'%(xPos)
-                    valueList['YPOS'] = '%g'%(yPos)
-                    valueList['ZPOS'] = '%g'%(zPos)
-                    valueList['APOS'] = '%g'%(yPos * 360.0 / (math.pi * abDiameter))
-                    valueList['BPOS'] = '%g'%(xPos * 360.0 / (math.pi * abDiameter))
-                    valueList['POWT'] = '%g'%(powerTo)
+                    valueList['XPOS'] = '%s'%(floatToString(xPos))
+                    valueList['YPOS'] = '%s'%(floatToString(yPos))
+                    valueList['ZPOS'] = '%s'%(floatToString(zPos))
+                    valueList['APOS'] = '%s'%(floatToString(yPos * 360.0 / (math.pi * abDiameter)))
+                    valueList['BPOS'] = '%s'%(floatToString(xPos * 360.0 / (math.pi * abDiameter)))
+                    valueList['POWT'] = '%s'%(floatToString(powerTo))
                     valueList['PCMT'] = laserOffCmd
-                    valueList['PIXV'] = '%g'%(pixelValue)
+                    valueList['PIXV'] = '%i'%(pixelValue)
                     file_gcode.write(generateGCodeLine(pixelCmd, valueList) + GCODE_NL)
 
                     lastPosition = xPos if scanX else yPos

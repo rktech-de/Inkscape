@@ -8,6 +8,7 @@ for Inkscape 0.9x
 
 * add new configuration "Zig zag offset"
 * fix: image was shifted by one pixel in y direction
+* fix: avoid scientific numbers in GCode output
 
 **13.01.2022**
 

@@ -4,16 +4,24 @@ for Inkscape 0.9x
 
 ### Changelog
 
+**18.01.2022**
+
+* Add new configuration "Optimize scan line"
+* Add new configuration "Gamma value for laser power output"
+* Add new configuration "Interleaved line scan with fixed laser power"
+* Add variable Pixel Value {POWL}, get maximal power value in current scan line
+* Change gray scale setting "0.21R + 0.71G + 0.07B" so a white pixel keeps white
+
 **15.01.2022**
 
-* add new configuration "Zig zag offset"
-* fix: image was shifted by one pixel in y direction
-* fix: avoid scientific numbers in GCode output
+* Add new configuration "Zig zag offset"
+* Fix: image was shifted by one pixel in y direction
+* Fix: avoid scientific numbers in GCode output
 
 **13.01.2022**
 
-* add variable Pixel Value {PIXV} 
-* add configuration "Laser on threshold" to control laser on/off command
+* Add variable Pixel Value {PIXV} 
+* Add configuration "Laser on threshold" to control laser on/off command
 
 **10.01.2022**
 

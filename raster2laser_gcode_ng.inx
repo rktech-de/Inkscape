@@ -104,6 +104,7 @@
 
                 <param name="gc1FlipX" type="boolean" gui-text="Flip X">false</param>
                 <param name="gc1FlipY" type="boolean" gui-text="Flip Y">false</param>
+                <param name="gc1Gamma" type="float" precision="2" min="0.1" max="10.0" gui-text="Gamma value for laser power output (>1 darker)">1.0</param>
                 
                 <param name="gc1ZeroPointX" type="enum" gui-text="Zero point for width">
                         <_item value="0">Left</_item>
@@ -116,6 +117,11 @@
                         <_item value="2">Bottom</_item>
                 </param>
 
+                <param name="gc1OptScnLine" type="enum" gui-text="Optimize scan line">
+                        <_item value="1">remove blank lines, reduce scan line length</_item>
+                        <_item value="2">remove blank lines only</_item>
+                        <_item value="3">no movement optimization</_item>
+                </param>
                 <param name="gc1ScanType" type="enum" gui-text="Scan image lines">
                         <_item value="0">Left to right</_item>
                         <_item value="1">Right to left</_item>
@@ -126,9 +132,9 @@
                         <_item value="6">Zig zag Y</_item>
                         <_item value="7">Fastest Y</_item>
                 </param>
-                <param name="gc1ZigZagOffset" type="float" precision="3" min="-10.0" max="10.0" gui-text="Zig zag offset [mm]">0.0</param>
 
-                
+                <param name="gc1ZigZagOffset" type="float" precision="3" min="-10.0" max="10.0" gui-text="Zig zag offset [mm]">0.0</param>
+                <param name="gc1Interleaved" type="boolean" gui-text="Interleaved line scan with fixed laser power">false</param>
 
             </page>
         </param>

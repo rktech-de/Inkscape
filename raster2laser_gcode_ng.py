@@ -84,7 +84,7 @@ except subprocess.CalledProcessError:
 
 class GcodeExport(inkex.Effect):
 
-######## 	Richiamata da _main()
+    ######## read Inkscape parameters
     def __init__(self):
         """init the effetc library and get options from gui"""
         inkex.Effect.__init__(self)
@@ -93,11 +93,11 @@ class GcodeExport(inkex.Effect):
         self.OptionParser.add_option("","--nopNB",action="store",type="string",dest="nopNB",default="",help="")
         
         # Image Settings
-        self.OptionParser.add_option("-d", "--imgDirName",action="store", type="string", dest="imgDirName", default="/home/",help="Directory for files") ####check_dir
+        self.OptionParser.add_option("-d", "--imgDirName",action="store", type="string", dest="imgDirName", default="/home/",help="Directory for files")
         self.OptionParser.add_option("-f", "--imgFileName", action="store", type="string", dest="imgFileName", default="-1.0", help="File name")            
         self.OptionParser.add_option("","--imgNumFileSuffix", action="store", type="inkbool", dest="imgNumFileSuffix", default=True,help="Add numeric suffix to filename")            
         self.OptionParser.add_option("","--imgBGcolor", action="store",type="string",dest="imgBGcolor",default="",help="")
-        self.OptionParser.add_option("","--imgResolution", action="store", type="int", dest="imgResolution", default="0",help="") #Usare il valore su float(xy)/resolution e un case per i DPI dell export
+        self.OptionParser.add_option("","--imgResolution", action="store", type="int", dest="imgResolution", default="0",help="")
         self.OptionParser.add_option("","--imgSpotSize", action="store", type="float", dest="imgSpotSize", default="0.2",help="")
         self.OptionParser.add_option("","--imgGrayType", action="store", type="int", dest="imgGrayType", default="1",help="") 
         self.OptionParser.add_option("","--imgConvType", action="store", type="int", dest="imgConvType", default="1",help="") 
@@ -124,14 +124,16 @@ class GcodeExport(inkex.Effect):
         self.OptionParser.add_option("","--gc1LevelZ",action="store", type="float", dest="gc1LevelZ", default="10.0",help="")
         self.OptionParser.add_option("","--gc1FlipX",action="store", type="inkbool", dest="gc1FlipX", default=False,help="")
         self.OptionParser.add_option("","--gc1FlipY",action="store", type="inkbool", dest="gc1FlipY", default=False,help="")
+        self.OptionParser.add_option("","--gc1Gamma",action="store", type="float", dest="gc1Gamma", default="1.0",help="")
         self.OptionParser.add_option("","--gc1ZeroPointX",action="store", type="int", dest="gc1ZeroPointX", default="0",help="")
         self.OptionParser.add_option("","--gc1ZeroPointY",action="store", type="int", dest="gc1ZeroPointY", default="0",help="")
+        self.OptionParser.add_option("","--gc1OptScnLine",action="store", type="int", dest="gc1OptScnLine", default="1",help="")
         self.OptionParser.add_option("","--gc1ScanType",action="store", type="int", dest="gc1ScanType", default="3",help="")
         self.OptionParser.add_option("","--gc1ZigZagOffset",action="store", type="float", dest="gc1ZigZagOffset", default="0",help="")
+        self.OptionParser.add_option("","--gc1Interleaved",action="store", type="inkbool", dest="gc1Interleaved", default=False,help="")
 
             
-######## 	Richiamata da __init__()
-########	Qui si svolge tutto
+    ## create PNG file(s)
     def effect(self):
 
         current_file = self.args[-1]
@@ -140,11 +142,10 @@ class GcodeExport(inkex.Effect):
         
         ##Implementare check_dir
         
-        if (os.path.isdir(self.options.imgDirName)) == True:					
+        if (os.path.isdir(self.options.imgDirName)) == True:
             
             ##CODICE SE ESISTE LA DIRECTORY
             #inkex.errormsg("OK") #DEBUG
-
             
             #Aggiungo un suffisso al nomefile per non sovrascrivere dei file
             if self.options.imgNumFileSuffix :
@@ -203,16 +204,8 @@ class GcodeExport(inkex.Effect):
     
 
     
-    
-########	ESPORTA L IMMAGINE IN PNG		
-######## 	Richiamata da effect()
-            
+    ## Export PNG from Inkscape        
     def exportPage(self,pos_file_png_exported,current_file,bg_color):		
-        ######## CREAZIONE DEL FILE PNG ########
-        #Crea l'immagine dentro la cartella indicata  da "pos_file_png_exported"
-        # -d 127 = risoluzione 127DPI  =>  5 pixel/mm  1pixel = 0.2mm
-        ###command="inkscape -C -e \"%s\" -b\"%s\" %s -d 127" % (pos_file_png_exported,bg_color,current_file) 
-
         if self.options.imgResolution < 1:
             DPI = 1.0 / self.options.imgSpotSize * 25.4
         else:
@@ -221,12 +214,10 @@ class GcodeExport(inkex.Effect):
 
         if self.options.imgFullPage:
             # export full page
-            # inkscape --verb EditSelectAll 
-            #command="inkscape -C -e \"%s\" -b\"%s\" %s -d %s" % (pos_file_png_exported,bg_color,current_file,DPI) #Comando da linea di comando per esportare in PNG
-            command='inkscape -C -e "%s" -b"%s" %s -d %s'%(pos_file_png_exported,bg_color,current_file,DPI) #Comando da linea di comando per esportare in PNG
+            command='inkscape -C -e "%s" -b"%s" %s -d %s'%(pos_file_png_exported,bg_color,current_file,DPI) 
         else:
-            #export drawing(s) outline
-            command='inkscape -D -e "%s" -b"%s" %s -d %s'%(pos_file_png_exported,bg_color,current_file,DPI) #Comando da linea di comando per esportare in PNG
+            # export objekt(s) outline
+            command='inkscape -D -e "%s" -b"%s" %s -d %s'%(pos_file_png_exported,bg_color,current_file,DPI)
                                 
         p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return_code = p.wait()
@@ -234,28 +225,17 @@ class GcodeExport(inkex.Effect):
         err = p.stderr
 
 
-########	CREA IMMAGINE IN B/N E POI GENERA GCODE
-######## 	Richiamata da effect()
-
+    ## Convert PNG to GCode
     def PNGtoGcode(self,pos_file_png_exported,pos_file_png_BW,pos_file_gcode):
             
-        ######## GENERO IMMAGINE IN SCALA DI GRIGI ########
-        #Scorro l immagine e la faccio diventare una matrice composta da list
-
-
-        reader = png.Reader(pos_file_png_exported)#File PNG generato
+        reader = png.Reader(pos_file_png_exported) # read PNG File from Inkscape export
         
         w, h, pixels, metadata = reader.read_flat()
         
-        
-        matrice = [[255 for i in range(w)]for j in range(h)]  #List al posto di un array
-        
-
-        #Scrivo una nuova immagine in Scala di grigio 8bit
-        #copia pixel per pixel 
+        matrice = [[255 for i in range(w)]for j in range(h)]  # create an empty (White) image matrix for grayscale data
 
         ##############################################################################################################
-        ## Convert image into greyscale 
+        ## Convert (RGB) image into 8bit greyscale 
         ##############################################################################################################
         
         if self.options.imgGrayType == 1:
@@ -263,7 +243,8 @@ class GcodeExport(inkex.Effect):
             for y in range(h): # y varia da 0 a h-1
                 for x in range(w): # x varia da 0 a w-1
                     pixel_position = (x + y * w)*4 if metadata['alpha'] else (x + y * w)*3
-                    matrice[y][x] = int(pixels[pixel_position]*0.21 + pixels[(pixel_position+1)]*0.71 + pixels[(pixel_position+2)]*0.07)
+                    #matrice[y][x] = int(pixels[pixel_position]*0.21 + pixels[(pixel_position+1)]*0.71 + pixels[(pixel_position+2)]*0.07)
+                    matrice[y][x] = int(pixels[pixel_position]*0.213 + pixels[(pixel_position+1)]*0.713 + pixels[(pixel_position+2)]*0.074)
         
         elif self.options.imgGrayType == 2:
             #(R+G+B)/3
@@ -310,8 +291,6 @@ class GcodeExport(inkex.Effect):
                     matrice[y][x] = int(min(list_RGB))
         
 
-        ####Ora matrice contiene l'immagine in scala di grigi
-
         ##############################################################################################################
         ## Generate black and white or greyscale image
         ##############################################################################################################
@@ -319,9 +298,10 @@ class GcodeExport(inkex.Effect):
         BLACK =   0
         W=WHITE
         B=BLACK
+        WHITE_FP = 1.0
         
-        matrice_BN = [[255 for i in range(w)]for j in range(h)]
-        matrice_FP = [[1.0 for i in range(w)]for j in range(h)]
+        matrice_BN = [[WHITE for i in range(w)]for j in range(h)]
+        matrice_FP = [[WHITE_FP for i in range(w)]for j in range(h)]
         
         conversionTypeText = 'unknown'
         
@@ -556,14 +536,11 @@ class GcodeExport(inkex.Effect):
             inkex.errormsg("Convertion type does not exist!")
 
 
-        ####Ora matrice_BN contiene l'immagine in Bianco (255) e Nero (0)
-
-
-        #### SALVO IMMAGINE IN BIANCO E NERO ####
-        file_img_BN = open(pos_file_png_BW, 'wb') #Creo il file
-        Costruttore_img = png.Writer(w, h, greyscale=True, bitdepth=8) #Impostazione del file immagine
-        Costruttore_img.write(file_img_BN, matrice_BN) #Costruttore del file immagine
-        file_img_BN.close()	#Chiudo il file
+        # Save preview image
+        file_img_BN = open(pos_file_png_BW, 'wb')
+        png_img = png.Writer(w, h, greyscale=True, bitdepth=8)
+        png_img.write(file_img_BN, matrice_BN)
+        file_img_BN.close()
 
 
         ##############################################################################################################
@@ -579,7 +556,7 @@ class GcodeExport(inkex.Effect):
                 return gCodeString
             
             def floatToString(floatValue):
-                result = ('%.5f' % floatValue).rstrip('0').rstrip('.')
+                result = ('%.4f' % floatValue).rstrip('0').rstrip('.')
                 return '0' if result == '-0' else result
 
             xOffset = 0.0          # set 0 point of G-Code
@@ -591,6 +568,7 @@ class GcodeExport(inkex.Effect):
             accel_distance = self.options.gc1AccDistance
             zPos = self.options.gc1LevelZ
             abDiameter = self.options.imgRotDiameter
+            optimizedScanLine = self.options.gc1OptScnLine
 
             scanType = self.options.gc1ScanType
             xZeroPoint = self.options.gc1ZeroPointX
@@ -600,8 +578,8 @@ class GcodeExport(inkex.Effect):
             laserOnCmd = self.options.gc1LaserOn
             laserOffCmd = self.options.gc1LaserOff
             laserOnThreshold = self.options.gc1LOnThreshold
-            #laserOnThreshold = 256 / 2
-
+            singlePowerInterleaved = self.options.gc1Interleaved
+            laserGamma = self.options.gc1Gamma
             if maxPower <= minPower:
                 inkex.errormsg("Maximum laser power value must be greater then minimum laser power value!")
 
@@ -616,15 +594,16 @@ class GcodeExport(inkex.Effect):
             valueList['ZPOS'] = '%s'%(floatToString(zPos))
             valueList['APOS'] = '0'
             valueList['BPOS'] = '0'
-            valueList['FEED'] = '%s'%(floatToString(feedRate))
-            valueList['POWT'] = '%s'%(floatToString(minPower))
-            valueList['POWF'] = '%s'%(floatToString(minPower))
+            valueList['FEED'] = '%s'%(floatToString(feedRate))  # Feed Rate Configuration value
             valueList['SCNC'] = 'init'
             valueList['SCNL'] = 'init'
             valueList['PDIR'] = 'init'
-            valueList['POWM'] = '%s'%(floatToString(minPower))
-            valueList['POWX'] = '%s'%(floatToString(maxPower))
-            valueList['PIXV'] = '%i'%(WHITE+1) # Pixel Value (0=Black ... 255=White, 256=travel path)
+            valueList['POWT'] = '%s'%(floatToString(minPower))  # Calculated Pixel Power (To direction, Standard GCode behavior)
+            valueList['POWF'] = '%s'%(floatToString(minPower))  # Calculated Pixel Power (From direction)
+            valueList['POWM'] = '%s'%(floatToString(minPower))  # Power Min Configuration value
+            valueList['POWX'] = '%s'%(floatToString(maxPower))  # Power Max Configuration value
+            valueList['POWL'] = '%s'%(floatToString(0))         # Power Max in Line
+            valueList['PIXV'] = '%i'%(WHITE+1)                  # Pixel Value (0=Black ... 255=White, 256=travel path)
 
  
             ########################################## Start gCode
@@ -761,10 +740,14 @@ class GcodeExport(inkex.Effect):
                 file_gcode.write(';   --gc1LevelZ               "%s"'%(self.options.gc1LevelZ) + GCODE_NL)
                 file_gcode.write(';   --gc1FlipX                "%s"'%(self.options.gc1FlipX) + GCODE_NL)
                 file_gcode.write(';   --gc1FlipY                "%s"'%(self.options.gc1FlipY) + GCODE_NL)
+                file_gcode.write(';   --gc1Gamma                "%s"'%(self.options.gc1Gamma) + GCODE_NL)
                 file_gcode.write(';   --gc1ZeroPointX           "%s"'%(self.options.gc1ZeroPointX) + GCODE_NL)
                 file_gcode.write(';   --gc1ZeroPointY           "%s"'%(self.options.gc1ZeroPointY) + GCODE_NL)
+                file_gcode.write(';   --gc1OptScnLine           "%s"'%(self.options.gc1OptScnLine) + GCODE_NL)
                 file_gcode.write(';   --gc1ScanType             "%s"'%(self.options.gc1ScanType) + GCODE_NL)
                 file_gcode.write(';   --gc1ZigZagOffset         "%s"'%(self.options.gc1ZigZagOffset) + GCODE_NL)
+                file_gcode.write(';   --gc1Interleaved          "%s"'%(self.options.gc1Interleaved) + GCODE_NL)
+                
             file_gcode.write(GCODE_NL)
             file_gcode.write('; Start Code' + GCODE_NL)	
             file_gcode.write(generateGCodeLine(self.options.gc1StartCode, valueList) + GCODE_NL)	
@@ -776,239 +759,266 @@ class GcodeExport(inkex.Effect):
             zigZagOffset = 0.0
             scanLeftRight = False
 
-            scanLines = range(h) if scanX else range(w)
+            scanLines = h if scanX else w
+            imageColums = w if scanX else h
+            #scanLines = range(h) if scanX else range(w)
             #scanLine = y
-            for scanLine in scanLines: 
+            
+            ##################################################################
+            # Iterate scan Lines
+            for scanLine in range(scanLines): 
+
+
                 #
                 if scanX:
-                    y = scanLine
-                    yPos = -1.0 * float(y)*Scala + yOffset
+                    imageLineDataMaster = matrice_BN[scanLine]
+                    yPos = -1.0 * float(scanLine)*Scala + yOffset
                     valueList['YPOS'] = '%s'%(floatToString(yPos))
                     valueList['APOS'] = '%s'%(floatToString(yPos * 360.0 / (math.pi * abDiameter)))
                 else:
-                    x = scanLine
-                    xPos = float(x)*Scala + xOffset
+                    imageLineDataMaster = [matrice_BN[j][scanLine] for j in range(imageColums)]
+                    xPos = float(scanLine)*Scala + xOffset
                     valueList['XPOS'] = '%s'%(floatToString(xPos))
                     valueList['BPOS'] = '%s'%(floatToString(xPos * 360.0 / (math.pi * abDiameter)))
                 valueList['SCNL'] = '%i'%(scanLine)
             
-                #file_gcode.write('; Y-Pos = ' + str(yPos) + '\n')
-                
-                # search for first and last pixel with laser on (Pixel value not white)
-                first_laser_on = -1
-                last_laser_on = -1
-                if scanX:
-                    for x in range(w):
-                        if matrice_BN[y][x] != WHITE:
-                            first_laser_on = x
-                            break
-                    for x in reversed(range(w)):
-                        if matrice_BN[y][x] != WHITE:
-                            last_laser_on = x
-                            break
+                # Multi Line, repeat the line, each with single power values from light to dark
+                if singlePowerInterleaved:
+                    repeats = []
+                    for j in reversed(range(WHITE-1)):
+                        if j in imageLineDataMaster:
+                            repeats.append(j)
                 else:
-                    for y in range(h):
-                        if matrice_BN[y][x] != WHITE:
-                            first_laser_on = y
-                            break
-                    for y in reversed(range(h)):
-                        if matrice_BN[y][x] != WHITE:
-                            last_laser_on = y
-                            break
+                    repeats = range(1)
+                    
+                for repeat in repeats:
+                    if singlePowerInterleaved:
+                        imageLineData = [(repeat if imageLineDataMaster[j] == repeat else WHITE) for j in range(imageColums)]
+                        minPixelValue = repeat
+                        valueList['SCNL'] = '%i.%03i'%(scanLine,repeat)
+                    else:
+                        imageLineData = imageLineDataMaster
+                        minPixelValue = min(imageLineData)
+                    
+                    maxLinePower = (float(WHITE - minPixelValue) * (maxPower - minPower) / 255.0) + minPower
+                    valueList['POWL'] = '%s'%(floatToString(maxLinePower))
+                    
+                    
+                    ## Scan line optimization
+                    first_laser_on = -1
+                    last_laser_on = -1
+                    if optimizedScanLine == 1:
+                        # search for first and last pixel with laser on (Pixel value not pure white)
+                        # "remove blank lines, reduce scan line length"
+                        for j in range(imageColums):
+                            #if imageLineData[j] != WHITE:
+                            if imageLineData[j] <= laserOnThreshold:
+                                first_laser_on = j
+                                break
+                        for j in reversed(range(imageColums)):
+                            #if imageLineData[j] != WHITE:
+                            if imageLineData[j] <= laserOnThreshold:
+                                last_laser_on = j
+                                break                
+                    elif optimizedScanLine == 2:
+                        # check if there is at least one not white pixel
+                        # "remove blank lines only"
+                        for j in range(imageColums):
+                            #if imageLineData[j] != WHITE:
+                            if imageLineData[j] <= laserOnThreshold:
+                                first_laser_on = 0
+                                last_laser_on = imageColums-1
+                                break
+                    else:
+                        # move the laser above the hole page
+                        # "no movement optimization"
+                        first_laser_on = 0
+                        last_laser_on = imageColums-1
                         
-                if scanType == 0:
-                    # alsways left -> right
-                    scanLeftRight = True
-                elif scanType == 1:
-                    # alsways right <- left
-                    scanLeftRight = False
-                elif scanType == 2:
-                    # alsways zigzag X
-                    scanLeftRight = False if scanLeftRight else True
-                elif scanType == 3:
-                    # fastes path X
-                    startLeft =  float(first_laser_on)*Scala - accel_distance + xOffset
-                    startRight = float(last_laser_on+1)*Scala + accel_distance + xOffset
-                    if abs(lastPosition-startLeft) < abs(lastPosition-startRight):
+                    ## direction movement optimization        
+                    if scanType == 0:
+                        # alsways left -> right
                         scanLeftRight = True
-                    else:
+                    elif scanType == 1:
+                        # alsways right <- left
                         scanLeftRight = False
-                elif scanType == 4:
-                    # alsways top \/ bottom
-                    scanLeftRight = True
-                elif scanType == 5:
-                    # alsways bottom /\ top
-                    scanLeftRight = False
-                elif scanType == 6:
-                    # alsways zigzag X
-                    scanLeftRight = False if scanLeftRight else True
-                elif scanType == 7:
-                    # fastes path Y
-                    startLeft =  -1.0 * (float(first_laser_on)*Scala - accel_distance) + yOffset
-                    startRight = -1.0 * (float(last_laser_on+1)*Scala + accel_distance) + yOffset
-                    if abs(lastPosition-startLeft) < abs(lastPosition-startRight):
+                    elif scanType == 2:
+                        # alsways zigzag X
+                        scanLeftRight = False if scanLeftRight else True
+                    elif scanType == 3:
+                        # fastes path X
+                        startLeft =  float(first_laser_on)*Scala - accel_distance + xOffset
+                        startRight = float(last_laser_on+1)*Scala + accel_distance + xOffset
+                        if abs(lastPosition-startLeft) < abs(lastPosition-startRight):
+                            scanLeftRight = True
+                        else:
+                            scanLeftRight = False
+                    elif scanType == 4:
+                        # alsways top \/ bottom
                         scanLeftRight = True
-                    else:
+                    elif scanType == 5:
+                        # alsways bottom /\ top
                         scanLeftRight = False
-                    
-                if first_laser_on >= 0 and last_laser_on >= 0:
-                    directionCountX = 0
-                    directionCountY = 0
-                    if scanLeftRight:
-                        # left to right / top to bottom
-                        scanColumns = range(first_laser_on, last_laser_on+1)
+                    elif scanType == 6:
+                        # alsways zigzag X
+                        scanLeftRight = False if scanLeftRight else True
+                    elif scanType == 7:
+                        # fastes path Y
+                        startLeft =  -1.0 * (float(first_laser_on)*Scala - accel_distance) + yOffset
+                        startRight = -1.0 * (float(last_laser_on+1)*Scala + accel_distance) + yOffset
+                        if abs(lastPosition-startLeft) < abs(lastPosition-startRight):
+                            scanLeftRight = True
+                        else:
+                            scanLeftRight = False
+                        
+                    if first_laser_on >= 0 and last_laser_on >= 0:
+                        directionCountX = 0
+                        directionCountY = 0
+                        if scanLeftRight:
+                            # left to right / top to bottom
+                            scanColumns = range(first_laser_on, last_laser_on+1)
+                            startLine = first_laser_on
+                            directionCount = 1
+                            reverseOffset = 0
+                            accelDist = accel_distance
+                            valueList['PDIR'] = '->' if scanX else '\/'
+                            zigZagOffset = 0.0
+
+                        else:
+                            # right to left / bottom to top
+                            scanColumns = range(last_laser_on, first_laser_on-1, -1)
+                            startLine = last_laser_on
+                            directionCount = -1
+                            reverseOffset = 1
+                            accelDist = 0.0 - accel_distance
+                            valueList['PDIR'] = '<-' if scanX else '/\\'    
+                            zigZagOffset = self.options.gc1ZigZagOffset
+
+                        # accelerate phase
                         if scanX:
-                            x = first_laser_on
-                            directionCountX = 1
+                            xPos = float(startLine + reverseOffset)*Scala - accelDist + xOffset + zigZagOffset
                         else:
-                            y = first_laser_on
-                            directionCountY = 1
-                        reverseOffset = 0
-                        accelDist = accel_distance
-                        valueList['PDIR'] = '->' if scanX else '\/'
-                        zigZagOffset = 0.0
+                            yPos = -1.0 * (float(startLine + reverseOffset)*Scala - accelDist) + yOffset + zigZagOffset
 
-                    else:
-                        # right to left / bottom to top
-                        scanColumns = range(last_laser_on, first_laser_on-1, -1)
-                        if scanX:
-                            x = last_laser_on
-                            directionCountX = -1
-                        else:
-                            y = last_laser_on
-                            directionCountY = -1
-                        reverseOffset = 1
-                        accelDist = 0.0 - accel_distance
-                        valueList['PDIR'] = '<-' if scanX else '/\\'    
-                        zigZagOffset = self.options.gc1ZigZagOffset
+                        pixelValue     = WHITE + 1      # travel phase
+                        pixelValueFrom = pixelValue
+                        pixelValueTo   = pixelValue
 
-                    # accelerate phase
-                    if scanX:
-                        xPos = float(x+reverseOffset)*Scala - accelDist + xOffset + zigZagOffset
-                    else:
-                        yPos = -1.0 * (float(y+reverseOffset)*Scala - accelDist) + yOffset + zigZagOffset
+                        power     = minPower
+                        powerFrom = power
+                        powerTo   = power
 
-                    pixelValue     = WHITE + 1      # travel phase
-                    pixelValueFrom = pixelValue
-                    pixelValueTo   = pixelValue
+                        valueList['SCNC'] = 'acc'
+                        valueList['XPOS'] = '%s'%(floatToString(xPos))
+                        valueList['YPOS'] = '%s'%(floatToString(yPos))
+                        valueList['ZPOS'] = '%s'%(floatToString(zPos))
+                        valueList['APOS'] = '%s'%(floatToString(yPos * 360.0 / (math.pi * abDiameter)))
+                        valueList['BPOS'] = '%s'%(floatToString(xPos * 360.0 / (math.pi * abDiameter)))
+                        valueList['POWT'] = '%s'%(floatToString(powerTo))
+                        valueList['POWF'] = '%s'%(floatToString(powerFrom))
+                        valueList['PCMT'] = laserOffCmd
+                        valueList['PCMF'] = laserOffCmd
+                        valueList['PIXV'] = '%i'%(pixelValueTo)
+                        
+                        file_gcode.write(generateGCodeLine(lineCmd, valueList) + GCODE_NL)
 
-                    power     = minPower
-                    powerFrom = power
-                    powerTo   = power
+                        ##################################################################
+                        # Iterate scan columns
+                        laserPowerCange = True
+                        for scanColumn in scanColumns:
+                            if laserPowerCange:
+                                if scanX:
+                                    xPos = float(scanColumn + reverseOffset)*Scala + xOffset + zigZagOffset
+                                else:
+                                    yPos = -1.0 * float(scanColumn + reverseOffset)*Scala + yOffset + zigZagOffset
 
-                    valueList['SCNC'] = 'acc'
-                    valueList['XPOS'] = '%s'%(floatToString(xPos))
-                    valueList['YPOS'] = '%s'%(floatToString(yPos))
-                    valueList['ZPOS'] = '%s'%(floatToString(zPos))
-                    valueList['APOS'] = '%s'%(floatToString(yPos * 360.0 / (math.pi * abDiameter)))
-                    valueList['BPOS'] = '%s'%(floatToString(xPos * 360.0 / (math.pi * abDiameter)))
-                    valueList['POWT'] = '%s'%(floatToString(powerTo))
-                    valueList['POWF'] = '%s'%(floatToString(powerFrom))
-                    valueList['PCMT'] = laserOffCmd
-                    valueList['PCMF'] = laserOffCmd
-                    valueList['PIXV'] = '%i'%(pixelValue)
-                    
-                    file_gcode.write(generateGCodeLine(lineCmd, valueList) + GCODE_NL)
+                                pixelValueTo   = pixelValue
+                                pixelValue     = imageLineData[scanColumn]
+                                pixelValueFrom = pixelValue
+                                    
+                                powerTo   = power
+                                #power = (float(WHITE - pixelValue) * (maxPower - minPower) / 255.0) + minPower
+                                power = ((WHITE_FP - ((float(pixelValue) / float(WHITE)) ** laserGamma)) * (maxPower - minPower)) + minPower
+                                powerFrom = power
 
-                    # xPos = float(x)*Scala + xOffset
-                    # print("G1 X%g Y%g S%g"%(xPos, yPos, power))
-                    laserPowerCange = True
-                    for scanColumn in scanColumns:
-                        if scanX:
-                            x = scanColumn
-                        else:
-                            y = scanColumn
-                            
-                        if laserPowerCange:
-                            if scanX:
-                                xPos = float(x+reverseOffset)*Scala + xOffset + zigZagOffset
-                            else:
-                                yPos = -1.0 * float(y+reverseOffset)*Scala + yOffset + zigZagOffset
-
-                            pixelValueTo   = pixelValue
-                            pixelValue     = matrice_BN[y][x]
-                            pixelValueFrom = pixelValue
-                                
-                            powerTo   = power
-                            power = (float(WHITE - pixelValue) * (maxPower - minPower) / 255.0) + minPower
-                            powerFrom = power
-
-                            valueList['SCNC'] = '%i'%(scanColumn+reverseOffset)    
-                            valueList['XPOS'] = '%s'%(floatToString(xPos))
-                            valueList['YPOS'] = '%s'%(floatToString(yPos))
-                            valueList['ZPOS'] = '%s'%(floatToString(zPos))
-                            valueList['APOS'] = '%s'%(floatToString(yPos * 360.0 / (math.pi * abDiameter)))
-                            valueList['BPOS'] = '%s'%(floatToString(xPos * 360.0 / (math.pi * abDiameter)))
-                            valueList['POWT'] = '%s'%(floatToString(powerTo))
-                            valueList['POWF'] = '%s'%(floatToString(powerFrom))
-                            valueList['PCMT'] = laserOnCmd if pixelValueTo   <= laserOnThreshold else laserOffCmd
-                            valueList['PCMF'] = laserOnCmd if pixelValueFrom <= laserOnThreshold else laserOffCmd
-                            valueList['PIXV'] = '%i'%(pixelValue)
-                            file_gcode.write(generateGCodeLine(pixelCmd, valueList) + GCODE_NL)
-                    
-                        laserPowerCange = False
-                        if scanColumn == scanColumns[-1]:
-                            laserPowerCange = True
-                            #print(x, matrice_BN[y][x], 0, laserPowerCange)
-                        else:
-                            if matrice_BN[y][x] != matrice_BN[y+directionCountY][x+directionCountX]:
+                                valueList['SCNC'] = '%i'%(scanColumn+reverseOffset)    
+                                valueList['XPOS'] = '%s'%(floatToString(xPos))
+                                valueList['YPOS'] = '%s'%(floatToString(yPos))
+                                valueList['ZPOS'] = '%s'%(floatToString(zPos))
+                                valueList['APOS'] = '%s'%(floatToString(yPos * 360.0 / (math.pi * abDiameter)))
+                                valueList['BPOS'] = '%s'%(floatToString(xPos * 360.0 / (math.pi * abDiameter)))
+                                valueList['POWT'] = '%s'%(floatToString(powerTo))
+                                valueList['POWF'] = '%s'%(floatToString(powerFrom))
+                                valueList['PCMT'] = laserOnCmd if pixelValueTo   <= laserOnThreshold else laserOffCmd
+                                valueList['PCMF'] = laserOnCmd if pixelValueFrom <= laserOnThreshold else laserOffCmd
+                                valueList['PIXV'] = '%i'%(pixelValueTo)
+                                file_gcode.write(generateGCodeLine(pixelCmd, valueList) + GCODE_NL)
+                        
+                            laserPowerCange = False
+                            if scanColumn == scanColumns[-1]:
                                 laserPowerCange = True
-                            #print(x, matrice_BN[y][x], matrice_BN[y][x+directionCount], laserPowerCange)
+                                #print(x, matrice_BN[y][x], 0, laserPowerCange)
+                            else:
+                                if imageLineData[scanColumn] != imageLineData[scanColumn + directionCount]:
+                                    laserPowerCange = True
+                                #print(x, matrice_BN[y][x], matrice_BN[y][x+directionCount], laserPowerCange)
 
-                    if scanX:
-                        xPos = float(x+1-reverseOffset)*Scala + xOffset + zigZagOffset
-                    else:
-                        yPos = -1.0 * float(y+1-reverseOffset)*Scala + yOffset + zigZagOffset
                         
-                    pixelValueTo   = pixelValue
-                    pixelValue     = WHITE + 1      # travel phase
-                    pixelValueFrom = pixelValue
+                        if scanX:
+                            xPos = float(scanColumn + 1 - reverseOffset)*Scala + xOffset + zigZagOffset
+                        else:
+                            yPos = -1.0 * float(scanColumn + 1 - reverseOffset)*Scala + yOffset + zigZagOffset
+                            
+                        pixelValueTo   = pixelValue
+                        pixelValue     = WHITE + 1      # travel phase
+                        pixelValueFrom = pixelValue
 
-                    powerTo   = power
-                    power     = minPower
-                    powerFrom = power
+                        powerTo   = power
+                        power     = minPower
+                        powerFrom = power
 
-                    valueList['SCNC'] = '%i'%(scanColumn+1-reverseOffset)    
-                    valueList['XPOS'] = '%s'%(floatToString(xPos))
-                    valueList['YPOS'] = '%s'%(floatToString(yPos))
-                    valueList['ZPOS'] = '%s'%(floatToString(zPos))
-                    valueList['APOS'] = '%s'%(floatToString(yPos * 360.0 / (math.pi * abDiameter)))
-                    valueList['BPOS'] = '%s'%(floatToString(xPos * 360.0 / (math.pi * abDiameter)))
-                    valueList['POWT'] = '%s'%(floatToString(powerTo))
-                    valueList['POWF'] = '%s'%(floatToString(powerFrom))
-                    valueList['PCMT'] = laserOnCmd if pixelValueTo <= laserOnThreshold else laserOffCmd
-                    valueList['PCMF'] = laserOffCmd
-                    valueList['PIXV'] = '%i'%(pixelValue)
-                    file_gcode.write(generateGCodeLine(pixelCmd, valueList) + GCODE_NL)
+                        valueList['SCNC'] = '%i'%(scanColumn+1-reverseOffset)    
+                        valueList['XPOS'] = '%s'%(floatToString(xPos))
+                        valueList['YPOS'] = '%s'%(floatToString(yPos))
+                        valueList['ZPOS'] = '%s'%(floatToString(zPos))
+                        valueList['APOS'] = '%s'%(floatToString(yPos * 360.0 / (math.pi * abDiameter)))
+                        valueList['BPOS'] = '%s'%(floatToString(xPos * 360.0 / (math.pi * abDiameter)))
+                        valueList['POWT'] = '%s'%(floatToString(powerTo))
+                        valueList['POWF'] = '%s'%(floatToString(powerFrom))
+                        valueList['PCMT'] = laserOnCmd if pixelValueTo <= laserOnThreshold else laserOffCmd
+                        valueList['PCMF'] = laserOffCmd
+                        valueList['PIXV'] = '%i'%(pixelValueTo)
+                        file_gcode.write(generateGCodeLine(pixelCmd, valueList) + GCODE_NL)
 
-                    # decelerate phase
-                    if scanX:
-                        xPos = float(x+1-reverseOffset)*Scala + accelDist + xOffset + zigZagOffset
-                    else:
-                        yPos = -1.0 * (float(y+1-reverseOffset)*Scala + accelDist) + yOffset + zigZagOffset
+                        # decelerate phase
+                        if scanX:
+                            xPos = float(scanColumn + 1 - reverseOffset)*Scala + accelDist + xOffset + zigZagOffset
+                        else:
+                            yPos = -1.0 * (float(scanColumn + 1 - reverseOffset)*Scala + accelDist) + yOffset + zigZagOffset
 
-                    pixelValueTo   = pixelValue
+                        pixelValueTo   = pixelValue
 
-                    powerTo = power
-                    
-                    valueList['SCNC'] = 'dec'    
-                    valueList['XPOS'] = '%s'%(floatToString(xPos))
-                    valueList['YPOS'] = '%s'%(floatToString(yPos))
-                    valueList['ZPOS'] = '%s'%(floatToString(zPos))
-                    valueList['APOS'] = '%s'%(floatToString(yPos * 360.0 / (math.pi * abDiameter)))
-                    valueList['BPOS'] = '%s'%(floatToString(xPos * 360.0 / (math.pi * abDiameter)))
-                    valueList['POWT'] = '%s'%(floatToString(powerTo))
-                    valueList['PCMT'] = laserOffCmd
-                    valueList['PIXV'] = '%i'%(pixelValue)
-                    file_gcode.write(generateGCodeLine(pixelCmd, valueList) + GCODE_NL)
+                        powerTo = power
+                        
+                        valueList['SCNC'] = 'dec'    
+                        valueList['XPOS'] = '%s'%(floatToString(xPos))
+                        valueList['YPOS'] = '%s'%(floatToString(yPos))
+                        valueList['ZPOS'] = '%s'%(floatToString(zPos))
+                        valueList['APOS'] = '%s'%(floatToString(yPos * 360.0 / (math.pi * abDiameter)))
+                        valueList['BPOS'] = '%s'%(floatToString(xPos * 360.0 / (math.pi * abDiameter)))
+                        valueList['POWT'] = '%s'%(floatToString(powerTo))
+                        valueList['PCMT'] = laserOffCmd
+                        valueList['PIXV'] = '%i'%(pixelValueTo)
+                        file_gcode.write(generateGCodeLine(pixelCmd, valueList) + GCODE_NL)
 
-                    lastPosition = xPos if scanX else yPos
+                        lastPosition = xPos if scanX else yPos
 
-                    valueList['SCNL'] = 'exit'
-                    valueList['SCNC'] = 'exit'
-                    valueList['PDIR'] = 'exit'
 
             ########################################## Post gCode
+            valueList['SCNL'] = 'exit'
+            valueList['SCNC'] = 'exit'
+            valueList['PDIR'] = 'exit'
+
             file_gcode.write('; End Code' + GCODE_NL)
             file_gcode.write(generateGCodeLine(self.options.gc1PostCode, valueList) + GCODE_NL)
             file_gcode.close() #Chiudo il file
@@ -1016,8 +1026,9 @@ class GcodeExport(inkex.Effect):
 
 
 
-######## 	######## 	######## 	######## 	######## 	######## 	######## 	######## 	######## 	
-
+#######################################################################
+## MAIN
+#######################################################################
 
 def _main():
     e=GcodeExport()

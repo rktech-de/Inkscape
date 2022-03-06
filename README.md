@@ -4,6 +4,10 @@ for Inkscape 0.9x
 
 ### Changelog
 
+**06.03.2022**
+
+- Add function "Invert (Black/White)" while prcessing laser power, e.g. for slate
+
 **18.01.2022**
 
 * Add new configuration "Optimize scan line"

@@ -124,6 +124,7 @@ class GcodeExport(inkex.Effect):
         self.OptionParser.add_option("","--gc1LevelZ",action="store", type="float", dest="gc1LevelZ", default="10.0",help="")
         self.OptionParser.add_option("","--gc1FlipX",action="store", type="inkbool", dest="gc1FlipX", default=False,help="")
         self.OptionParser.add_option("","--gc1FlipY",action="store", type="inkbool", dest="gc1FlipY", default=False,help="")
+        self.OptionParser.add_option("","--gc1Invert",action="store", type="inkbool", dest="gc1Invert", default=False,help="")
         self.OptionParser.add_option("","--gc1Gamma",action="store", type="float", dest="gc1Gamma", default="1.0",help="")
         self.OptionParser.add_option("","--gc1ZeroPointX",action="store", type="int", dest="gc1ZeroPointX", default="0",help="")
         self.OptionParser.add_option("","--gc1ZeroPointY",action="store", type="int", dest="gc1ZeroPointY", default="0",help="")
@@ -562,24 +563,32 @@ class GcodeExport(inkex.Effect):
             xOffset = 0.0          # set 0 point of G-Code
             yOffset = 0.0          # set 0 point of G-Code
 
+            abDiameter = self.options.imgRotDiameter
+
+            settingName = self.options.gc1Setting
             maxPower = self.options.gc1MaxPower
             minPower = self.options.gc1MinPower
             feedRate = self.options.gc1FeedRate
-            accel_distance = self.options.gc1AccDistance
+            accelDistance = self.options.gc1AccDistance
             zPos = self.options.gc1LevelZ
-            abDiameter = self.options.imgRotDiameter
             optimizedScanLine = self.options.gc1OptScnLine
-
+            offsetZigZag = self.options.gc1ZigZagOffset
             scanType = self.options.gc1ScanType
             xZeroPoint = self.options.gc1ZeroPointX
             yZeroPoint = self.options.gc1ZeroPointY
+            startCmd = self.options.gc1StartCode
+            postCmd = self.options.gc1PostCode
             lineCmd = self.options.gc1LineCode
             pixelCmd = self.options.gc1PixelCode
             laserOnCmd = self.options.gc1LaserOn
             laserOffCmd = self.options.gc1LaserOff
             laserOnThreshold = self.options.gc1LOnThreshold
             singlePowerInterleaved = self.options.gc1Interleaved
+            flipX = self.options.gc1FlipX
+            flipY = self.options.gc1FlipY
+            invertBW = self.options.gc1Invert
             laserGamma = self.options.gc1Gamma
+            
             if maxPower <= minPower:
                 inkex.errormsg("Maximum laser power value must be greater then minimum laser power value!")
 
@@ -607,13 +616,18 @@ class GcodeExport(inkex.Effect):
 
  
             ########################################## Start gCode
-            if self.options.gc1FlipX == True:
+            if flipX == True:
                 for y in range(h):
-                    matrice_BN[y].reverse()				
+                    matrice_BN[y].reverse()
 
-            if self.options.gc1FlipY == True: #Inverto asse Y solo se flip_y = False     
+            if flipY == True: #Inverto asse Y solo se flip_y = False     
                 #-> coordinate Cartesiane (False) Coordinate "informatiche" (True)
-                matrice_BN.reverse()				
+                matrice_BN.reverse()
+                
+            if invertBW == True:
+                for y in range(h):
+                    matrice_BN[y] = [ WHITE-j for j in matrice_BN[y] ]
+
 
             # distance between lines (steps)
             if self.options.imgResolution < 1:
@@ -621,8 +635,8 @@ class GcodeExport(inkex.Effect):
             else:
                 Scala = 1.0/float(self.options.imgResolution)
 
-            if accel_distance <= 0:
-                accel_distance = Scala
+            if accelDistance <= 0:
+                accelDistance = Scala
                 
             xOffsetText = 'unknown'
             if xZeroPoint == 0:
@@ -698,17 +712,17 @@ class GcodeExport(inkex.Effect):
             file_gcode.write(';   Pixel size:               %i x %i'%(w, h) + GCODE_NL)
             file_gcode.write(';   Size:                     %s x %s mm'%(floatToString(w*Scala), floatToString(h*Scala)) + GCODE_NL)
             file_gcode.write(';' + GCODE_NL)
-            file_gcode.write('; Parameter setting "%s":'%(self.options.gc1Setting)+ GCODE_NL)
+            file_gcode.write('; Parameter setting "%s":'%(settingName)+ GCODE_NL)
             file_gcode.write(';   Zero point:               %s/%s'%(xOffsetText,yOffsetText) + GCODE_NL)
             file_gcode.write(';   Laser spot size           %s mm'%(floatToString(Scala)) + GCODE_NL)
             file_gcode.write(';   Engraving speed:          %s mm/min'%(floatToString(feedRate)) + GCODE_NL)
             file_gcode.write(';   Minimum power value:      %s'%(floatToString(minPower)) + GCODE_NL)
             file_gcode.write(';   Maximum power value:      %s'%(floatToString(maxPower)) + GCODE_NL)
-            file_gcode.write(';   Acceleration distance:    %s mm'%(floatToString(accel_distance)) + GCODE_NL)
+            file_gcode.write(';   Acceleration distance:    %s mm'%(floatToString(accelDistance)) + GCODE_NL)
             file_gcode.write(';   Conversion algorithm:     %s'%(conversionTypeText) + GCODE_NL)
             file_gcode.write(';   Scan Type:                %s'%(scanTypeText) + GCODE_NL)
-            file_gcode.write(';   Flip X:                   %s'%('Yes' if self.options.gc1FlipX else 'No') + GCODE_NL)
-            file_gcode.write(';   Flip Y:                   %s'%('Yes' if self.options.gc1FlipY else 'No') + GCODE_NL)
+            file_gcode.write(';   Flip X:                   %s'%('Yes' if flipX else 'No') + GCODE_NL)
+            file_gcode.write(';   Flip Y:                   %s'%('Yes' if flipY else 'No') + GCODE_NL)
             if self.options.debug:
                 file_gcode.write(';' + GCODE_NL)
                 file_gcode.write('; Debug Parameters:'+ GCODE_NL)
@@ -725,32 +739,33 @@ class GcodeExport(inkex.Effect):
                 file_gcode.write(';   --imgRotDiameter          "%s"'%(self.options.imgRotDiameter) + GCODE_NL)
                 file_gcode.write(';   --imgFullPage             "%s"'%(self.options.imgFullPage) + GCODE_NL)
                 file_gcode.write(';   --imgPreviewOnly          "%s"'%(self.options.imgPreviewOnly) + GCODE_NL)
-                file_gcode.write(';   --gc1Setting              "%s"'%(self.options.gc1Setting) + GCODE_NL)
-                file_gcode.write(';   --gc1StartCode            "%s"'%(self.options.gc1StartCode) + GCODE_NL)
-                file_gcode.write(';   --gc1PostCode             "%s"'%(self.options.gc1PostCode) + GCODE_NL)
-                file_gcode.write(';   --gc1LineCode             "%s"'%(self.options.gc1LineCode) + GCODE_NL)
-                file_gcode.write(';   --gc1PixelCode            "%s"'%(self.options.gc1PixelCode) + GCODE_NL)
-                file_gcode.write(';   --gc1LaserOn              "%s"'%(self.options.gc1LaserOn) + GCODE_NL)
-                file_gcode.write(';   --gc1LaserOff             "%s"'%(self.options.gc1LaserOff) + GCODE_NL)
-                file_gcode.write(';   --gc1LOnThreshold         "%s"'%(self.options.gc1LOnThreshold) + GCODE_NL)
-                file_gcode.write(';   --gc1FeedRate             "%s"'%(self.options.gc1FeedRate) + GCODE_NL)
-                file_gcode.write(';   --gc1MinPower             "%s"'%(self.options.gc1MinPower) + GCODE_NL)
-                file_gcode.write(';   --gc1MaxPower             "%s"'%(self.options.gc1MaxPower) + GCODE_NL)
-                file_gcode.write(';   --gc1AccDistance          "%s"'%(self.options.gc1AccDistance) + GCODE_NL)
-                file_gcode.write(';   --gc1LevelZ               "%s"'%(self.options.gc1LevelZ) + GCODE_NL)
-                file_gcode.write(';   --gc1FlipX                "%s"'%(self.options.gc1FlipX) + GCODE_NL)
-                file_gcode.write(';   --gc1FlipY                "%s"'%(self.options.gc1FlipY) + GCODE_NL)
-                file_gcode.write(';   --gc1Gamma                "%s"'%(self.options.gc1Gamma) + GCODE_NL)
-                file_gcode.write(';   --gc1ZeroPointX           "%s"'%(self.options.gc1ZeroPointX) + GCODE_NL)
-                file_gcode.write(';   --gc1ZeroPointY           "%s"'%(self.options.gc1ZeroPointY) + GCODE_NL)
-                file_gcode.write(';   --gc1OptScnLine           "%s"'%(self.options.gc1OptScnLine) + GCODE_NL)
-                file_gcode.write(';   --gc1ScanType             "%s"'%(self.options.gc1ScanType) + GCODE_NL)
-                file_gcode.write(';   --gc1ZigZagOffset         "%s"'%(self.options.gc1ZigZagOffset) + GCODE_NL)
-                file_gcode.write(';   --gc1Interleaved          "%s"'%(self.options.gc1Interleaved) + GCODE_NL)
+                file_gcode.write(';   --gc1Setting              "%s"'%(settingName) + GCODE_NL)
+                file_gcode.write(';   --gc1StartCode            "%s"'%(startCmd) + GCODE_NL)
+                file_gcode.write(';   --gc1PostCode             "%s"'%(postCmd) + GCODE_NL)
+                file_gcode.write(';   --gc1LineCode             "%s"'%(lineCmd) + GCODE_NL)
+                file_gcode.write(';   --gc1PixelCode            "%s"'%(pixelCmd) + GCODE_NL)
+                file_gcode.write(';   --gc1LaserOn              "%s"'%(laserOnCmd) + GCODE_NL)
+                file_gcode.write(';   --gc1LaserOff             "%s"'%(laserOffCmd) + GCODE_NL)
+                file_gcode.write(';   --gc1LOnThreshold         "%s"'%(laserOnThreshold) + GCODE_NL)
+                file_gcode.write(';   --gc1FeedRate             "%s"'%(feedRate) + GCODE_NL)
+                file_gcode.write(';   --gc1MinPower             "%s"'%(minPower) + GCODE_NL)
+                file_gcode.write(';   --gc1MaxPower             "%s"'%(maxPower) + GCODE_NL)
+                file_gcode.write(';   --gc1AccDistance          "%s"'%(accelDistance) + GCODE_NL)
+                file_gcode.write(';   --gc1LevelZ               "%s"'%(zPos) + GCODE_NL)
+                file_gcode.write(';   --gc1FlipX                "%s"'%(flipX) + GCODE_NL)
+                file_gcode.write(';   --gc1FlipY                "%s"'%(flipY) + GCODE_NL)
+                file_gcode.write(';   --gc1Invert               "%s"'%(invertBW) + GCODE_NL)
+                file_gcode.write(';   --gc1Gamma                "%s"'%(laserGamma) + GCODE_NL)
+                file_gcode.write(';   --gc1ZeroPointX           "%s"'%(xZeroPoint) + GCODE_NL)
+                file_gcode.write(';   --gc1ZeroPointY           "%s"'%(yZeroPoint) + GCODE_NL)
+                file_gcode.write(';   --gc1OptScnLine           "%s"'%(optimizedScanLine) + GCODE_NL)
+                file_gcode.write(';   --gc1ScanType             "%s"'%(scanType) + GCODE_NL)
+                file_gcode.write(';   --gc1ZigZagOffset         "%s"'%(offsetZigZag) + GCODE_NL)
+                file_gcode.write(';   --gc1Interleaved          "%s"'%(singlePowerInterleaved) + GCODE_NL)
                 
             file_gcode.write(GCODE_NL)
             file_gcode.write('; Start Code' + GCODE_NL)	
-            file_gcode.write(generateGCodeLine(self.options.gc1StartCode, valueList) + GCODE_NL)	
+            file_gcode.write(generateGCodeLine(startCmd, valueList) + GCODE_NL)	
 
             ########################################## Picture gCode
             file_gcode.write(GCODE_NL + '; Image Code' + GCODE_NL)	
@@ -847,8 +862,8 @@ class GcodeExport(inkex.Effect):
                         scanLeftRight = False if scanLeftRight else True
                     elif scanType == 3:
                         # fastes path X
-                        startLeft =  float(first_laser_on)*Scala - accel_distance + xOffset
-                        startRight = float(last_laser_on+1)*Scala + accel_distance + xOffset
+                        startLeft =  float(first_laser_on)*Scala - accelDistance + xOffset
+                        startRight = float(last_laser_on+1)*Scala + accelDistance + xOffset
                         if abs(lastPosition-startLeft) < abs(lastPosition-startRight):
                             scanLeftRight = True
                         else:
@@ -864,8 +879,8 @@ class GcodeExport(inkex.Effect):
                         scanLeftRight = False if scanLeftRight else True
                     elif scanType == 7:
                         # fastes path Y
-                        startLeft =  -1.0 * (float(first_laser_on)*Scala - accel_distance) + yOffset
-                        startRight = -1.0 * (float(last_laser_on+1)*Scala + accel_distance) + yOffset
+                        startLeft =  -1.0 * (float(first_laser_on)*Scala - accelDistance) + yOffset
+                        startRight = -1.0 * (float(last_laser_on+1)*Scala + accelDistance) + yOffset
                         if abs(lastPosition-startLeft) < abs(lastPosition-startRight):
                             scanLeftRight = True
                         else:
@@ -880,7 +895,7 @@ class GcodeExport(inkex.Effect):
                             startLine = first_laser_on
                             directionCount = 1
                             reverseOffset = 0
-                            accelDist = accel_distance
+                            accelDist = accelDistance
                             valueList['PDIR'] = '->' if scanX else '\/'
                             zigZagOffset = 0.0
 
@@ -890,9 +905,9 @@ class GcodeExport(inkex.Effect):
                             startLine = last_laser_on
                             directionCount = -1
                             reverseOffset = 1
-                            accelDist = 0.0 - accel_distance
+                            accelDist = 0.0 - accelDistance
                             valueList['PDIR'] = '<-' if scanX else '/\\'    
-                            zigZagOffset = self.options.gc1ZigZagOffset
+                            zigZagOffset = offsetZigZag
 
                         # accelerate phase
                         if scanX:
@@ -1020,7 +1035,7 @@ class GcodeExport(inkex.Effect):
             valueList['PDIR'] = 'exit'
 
             file_gcode.write('; End Code' + GCODE_NL)
-            file_gcode.write(generateGCodeLine(self.options.gc1PostCode, valueList) + GCODE_NL)
+            file_gcode.write(generateGCodeLine(postCmd, valueList) + GCODE_NL)
             file_gcode.close() #Chiudo il file
 
 

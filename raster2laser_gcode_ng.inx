@@ -57,7 +57,7 @@
                 </param>
                 
                 <!-- Black and White Conversion Mode -->
-                <param name="imgConvType" type="enum" gui-text="B/W conversion algorithm ">
+                <param name="imgConvType" type="enum" gui-text="B/W conversion algorithm">
                         <_item value="1">B/W fixed threshold</_item>
                         <_item value="2">B/W random threshold</_item>
                         <_item value="3">Halftone</_item>

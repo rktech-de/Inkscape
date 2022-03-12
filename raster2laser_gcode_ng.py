@@ -61,11 +61,27 @@ import collections
 #sys.path.append('/usr/share/inkscape/extensions')
 #sys.path.append('/Applications/Inkscape.app/Contents/Resources/extensions') 
 
+def errormsg(msg):
+    sys.stderr.write(msg+"\n")
+    
+
 def extensions_path_fallback():
     sys.path.append('/usr/share/inkscape/extensions')
     sys.path.append('/Applications/Inkscape.app/Contents/Resources/extensions')
 
 
+## get inkscape major version 
+command='inkscape --version'
+p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+return_code = p.wait()
+stdout, stderr = p.communicate()
+inkVersion = stdout.decode('utf8').split(' ')[1]
+majorVersion = int(inkVersion.split('.')[0])
+pyVersion = sys.version.split(' ')[0]
+#errormsg( "Inkscape Version: " + inkVersion + " => " + str(majorVersion) + "\n" + "Python Version: " + pyVersion)
+
+
+## get extension dir
 try:
     command='inkscape --extension-directory'
     p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -140,13 +156,8 @@ class GcodeExport(inkex.Effect):
         current_file = self.args[-1]
         bg_color = self.options.imgBGcolor
         
-        
-        ##Implementare check_dir
-        
+        ## check dir
         if (os.path.isdir(self.options.imgDirName)) == True:
-            
-            ##CODICE SE ESISTE LA DIRECTORY
-            #inkex.errormsg("OK") #DEBUG
             
             #Aggiungo un suffisso al nomefile per non sovrascrivere dei file
             if self.options.imgNumFileSuffix :
@@ -159,7 +170,6 @@ class GcodeExport(inkex.Effect):
                     if r :
                         max_n = max(max_n,int(r.group(1)))	
                 self.options.imgFileName = temp_name + "_%04d"%(max_n+1)
-
 
             #genero i percorsi file da usare
             suffix = ""
@@ -182,8 +192,7 @@ class GcodeExport(inkex.Effect):
             elif self.options.imgConvType == 9:
                 suffix = "_Gray_"+str(self.options.imgGrayResolution)
             else:
-                inkex.errormsg("Unknown conversion type!")
-                    
+                errormsg("Unknown conversion type!")
             
             pos_file_png_exported = os.path.join(self.options.imgDirName,self.options.imgFileName+".png") 
             pos_file_png_BW = os.path.join(self.options.imgDirName,self.options.imgFileName+suffix+"_preview.png") 
@@ -201,7 +210,7 @@ class GcodeExport(inkex.Effect):
                 os.remove(pos_file_png_exported)    
                 
         else:
-            inkex.errormsg("Directory does not exist! Please specify existing imgDirName!")
+            errormsg("Directory does not exist! Please specify existing '--imgDirName'!")
     
 
     
@@ -212,18 +221,22 @@ class GcodeExport(inkex.Effect):
         else:
             DPI = float(self.options.imgResolution) * 25.4
 
+        # select export command option depending on major version
+        if majorVersion < 1:
+            # 0.9x
+            exportCmd = '-e'
+        else:
+            # 1.x
+            exportCmd = '-o'
 
         if self.options.imgFullPage:
-            # export full page
-            command='inkscape -C -e "%s" -b"%s" %s -d %s'%(pos_file_png_exported,bg_color,current_file,DPI) 
+            imageCmd = '-C'
         else:
-            # export objekt(s) outline
-            command='inkscape -D -e "%s" -b"%s" %s -d %s'%(pos_file_png_exported,bg_color,current_file,DPI)
-                                
+            imageCmd = '-D'
+        
+        command='inkscape %s %s "%s" -b "%s" -d %s %s' % (imageCmd, exportCmd, pos_file_png_exported, bg_color, DPI, current_file)
         p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return_code = p.wait()
-        f = p.stdout
-        err = p.stderr
 
 
     ## Convert PNG to GCode
@@ -534,7 +547,7 @@ class GcodeExport(inkex.Effect):
                         matrice_BN[y][x] = lookUpTabel[matrice[y][x]]
             
         else:
-            inkex.errormsg("Convertion type does not exist!")
+            errormsg("Convertion type does not exist!")
 
 
         # Save preview image
@@ -590,7 +603,7 @@ class GcodeExport(inkex.Effect):
             laserGamma = self.options.gc1Gamma
             
             if maxPower <= minPower:
-                inkex.errormsg("Maximum laser power value must be greater then minimum laser power value!")
+                errormsg("Maximum laser power value must be greater then minimum laser power value!")
 
             
             GCODE_NL = '\n'
@@ -705,7 +718,7 @@ class GcodeExport(inkex.Effect):
             
             #Configurazioni iniziali standard Gcode
             file_gcode.write('; Generated with:'+ GCODE_NL)
-            file_gcode.write(';   Inkscape and "Raster 2 Laser Gcode generator"' + GCODE_NL)
+            file_gcode.write(';   Inkscape %s and "Raster 2 Laser Gcode generator NG"'%(inkVersion) + GCODE_NL)
             file_gcode.write(';   by RKtech (based on 305 Engineering code)' + GCODE_NL)
             file_gcode.write(';' + GCODE_NL)
             file_gcode.write('; Image:'+ GCODE_NL)

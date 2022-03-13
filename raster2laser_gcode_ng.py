@@ -355,8 +355,8 @@ class GcodeExport(inkex.Effect):
             Step3 = [[W,W,B,W,W],[W,B,B,B,W],[B,B,B,B,B],[W,B,B,B,W],[W,W,B,W,W]]
             Step4 = [[W,B,B,B,W],[B,B,B,B,B],[B,B,B,B,B],[B,B,B,B,B],[W,B,B,B,W]]
             
-            for y in range(h/5): 
-                for x in range(w/5): 
+            for y in range(int(h/5)): 
+                for x in range(int(w/5)): 
                     media = 0
                     for y2 in range(5):
                         for x2 in range(5):
@@ -382,7 +382,7 @@ class GcodeExport(inkex.Effect):
             Step4r = [B,B,B,B,W]
 
             for y in range(h): 
-                for x in range(w/5): 
+                for x in range(int(w/5)): 
                     media = 0
                     for x2 in range(5):
                         media +=  matrice[y][x*5+x2]
@@ -405,7 +405,7 @@ class GcodeExport(inkex.Effect):
             Step3c = [W,B,B,B,W]
             Step4c = [B,B,B,B,W]
 
-            for y in range(h/5):
+            for y in range(int(h/5)):
                 for x in range(w):
                     media = 0
                     for y2 in range(5):
@@ -533,7 +533,7 @@ class GcodeExport(inkex.Effect):
                 matrice_BN = matrice
             else:
                 # create look up tabel
-                lookUpTabel = range(256)
+                lookUpTabel = list(range(256))
                 #grayscale_resolution = 256 / self.options.imgGrayResolution
                 if self.options.imgGrayResolution > 1:
                     a = (255.0/(self.options.imgGrayResolution-1))

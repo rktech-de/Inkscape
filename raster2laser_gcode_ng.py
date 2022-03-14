@@ -71,13 +71,22 @@ def extensions_path_fallback():
 
 
 ## get inkscape major version 
-command='inkscape --version'
-p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-return_code = p.wait()
-stdout, stderr = p.communicate()
-inkVersion = stdout.decode('utf8').split(' ')[1]
-majorVersion = int(inkVersion.split('.')[0])
-pyVersion = sys.version.split(' ')[0]
+try:
+    command='inkscape --version'
+    p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    return_code = p.wait()
+    stdout, stderr = p.communicate()
+    inkVersion = stdout.decode('utf8').split(' ')[1]
+    majorVersion = int(inkVersion.split('.')[0])
+except:
+    # if inkscape version is not accessible, do a guess based on the python version
+    if sys.version_info.major < 3:
+        inkVersion = "0.9x"
+        majorVersion = 0
+    else:
+        inkVersion = "1.x"
+        majorVersion = 1
+#pyVersion = sys.version.split(' ')[0]
 #errormsg( "Inkscape Version: " + inkVersion + " => " + str(majorVersion) + "\n" + "Python Version: " + pyVersion)
 
 

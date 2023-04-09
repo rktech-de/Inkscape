@@ -56,6 +56,7 @@ import png
 import array
 import collections
 
+
 # Pull Request #23
 # from Pull Request "https://github.com/305engineering/Inkscape/pull/23"
 #sys.path.append('/usr/share/inkscape/extensions')
@@ -168,19 +169,18 @@ class GcodeExport(inkex.Effect):
         ## check dir
         if (os.path.isdir(self.options.imgDirName)) == True:
             
-            #Aggiungo un suffisso al nomefile per non sovrascrivere dei file
+            # find next unused suffix numger
             if self.options.imgNumFileSuffix :
-                dir_list = os.listdir(self.options.imgDirName) #List di tutti i file nella imgDirName di lavoro
+                dir_list = os.listdir(self.options.imgDirName)
                 temp_name =  self.options.imgFileName
                 max_n = 0
                 for s in dir_list :
-                    #r = re.match(r"^%s_0*(\d+)%s$"%(re.escape(temp_name),'.png' ), s)
                     r = re.match(r"^%s_0*(\d+)_.+preview\.%s$"%(re.escape(temp_name),'png' ), s)
                     if r :
                         max_n = max(max_n,int(r.group(1)))	
                 self.options.imgFileName = temp_name + "_%04d"%(max_n+1)
 
-            #genero i percorsi file da usare
+            # create file suffix
             suffix = ""
             if self.options.imgConvType == 1:
                 suffix = "_BW_"+str(self.options.imgBWthreshold)
@@ -206,17 +206,31 @@ class GcodeExport(inkex.Effect):
             pos_file_png_exported = os.path.join(self.options.imgDirName,self.options.imgFileName+".png") 
             pos_file_png_BW = os.path.join(self.options.imgDirName,self.options.imgFileName+suffix+"_preview.png") 
             pos_file_gcode = os.path.join(self.options.imgDirName,self.options.imgFileName+suffix+".ngc") 
-
-            #Esporto l'immagine in PNG
-            self.exportPage(pos_file_png_exported,current_file,bg_color)
             
-            #DA FARE
-            #Manipolo l'immagine PNG per generare il file Gcode
-            self.PNGtoGcode(pos_file_png_exported,pos_file_png_BW,pos_file_gcode)
+            # inkscape returns a warning if file will not end wit '.svg' so add it to the tmp file
+            current_svg_file = current_file + ".svg"
+            command='mv %s %s' % (current_file, current_svg_file)
+            p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            return_code = p.wait()
+            stdout, stderr = p.communicate()
+            if stderr:
+                msg = 'CMD:\n'+ command + '\n\nSTDOUT:\n' + stdout.decode('utf8')+"\n\nSTDERR:\n"+stderr.decode('utf8')
+                errormsg(msg)
+                exit()
+
+            # Generate PNG from SVG
+            ret = self.exportPage(pos_file_png_exported, current_svg_file, bg_color)
+            
+            # Generate Gcode from PNG
+            self.PNGtoGcode(pos_file_png_exported, pos_file_png_BW, pos_file_gcode)
             
             # remove the exported picture 
             if os.path.isfile(pos_file_png_exported):
                 os.remove(pos_file_png_exported)    
+
+            # remove the tmp svg picture 
+            if os.path.isfile(current_svg_file):
+                os.remove(current_svg_file)    
                 
         else:
             errormsg("Directory does not exist! Please specify existing '--imgDirName'!")
@@ -224,11 +238,11 @@ class GcodeExport(inkex.Effect):
 
     
     ## Export PNG from Inkscape        
-    def exportPage(self,pos_file_png_exported,current_file,bg_color):		
+    def exportPage(self,pos_file_png_exported, current_file, bg_color):		
         if self.options.imgResolution < 1:
-            DPI = 1.0 / self.options.imgSpotSize * 25.4
+            DPI = str(round(1.0 / self.options.imgSpotSize * 25.4, 3))
         else:
-            DPI = float(self.options.imgResolution) * 25.4
+            DPI = str(round(float(self.options.imgResolution) * 25.4, 3))
 
         # select export command option depending on major version
         if majorVersion < 1:
@@ -242,11 +256,21 @@ class GcodeExport(inkex.Effect):
             imageCmd = '-C'
         else:
             imageCmd = '-D'
-        
+
         command='inkscape %s %s "%s" -b "%s" -d %s %s' % (imageCmd, exportCmd, pos_file_png_exported, bg_color, DPI, current_file)
         p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return_code = p.wait()
-
+        stdout, stderr = p.communicate()
+        # inkscape 1.1.2 put any output in stderr, so only stop processing if there is a warning in it.
+        if "WARNING" in stderr.decode('utf8'):
+            msg = 'CMD:\n'+ command + '\n\nSTDOUT:\n' + stdout.decode('utf8')+"\n\nSTDERR:\n"+stderr.decode('utf8')
+            command='inkscape --version'
+            p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            return_code = p.wait()
+            stdout, stderr = p.communicate()
+            msg = msg + '\n\nVersion: ' + stdout.decode('utf8')
+            errormsg(msg)
+            exit()
 
     ## Convert PNG to GCode
     def PNGtoGcode(self,pos_file_png_exported,pos_file_png_BW,pos_file_gcode):

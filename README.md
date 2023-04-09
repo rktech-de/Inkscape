@@ -4,6 +4,10 @@ now for Inkscape 0.9x and 1.1.x
 
 ### Changelog
 
+**09.04.2023**
+
+* fix some 1.1. related Issues (inkscape put all output in stderr and script stops)
+
 **14.03.2022**
 
 - fix some 1.1. related Issues
@@ -14,7 +18,7 @@ now for Inkscape 0.9x and 1.1.x
 
 **06.03.2022**
 
-- Add function "Invert (Black/White)" while prcessing laser power, e.g. for slate
+- Add function "Invert (Black/White)" while processing laser power, e.g. for slate
 
 **18.01.2022**
 

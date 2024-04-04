@@ -8,27 +8,52 @@
 	
 	<!-- Dependencies, only the main python script is needed -->
 	<dependency type="executable" location="extensions">raster2laser_gcode_ng.py</dependency>
-	<dependency type="executable" location="extensions">inkex.py</dependency>
-	    	
+	<dependency type="executable" location="extensions">png.py</dependency>
+        
        	<!-- Title and description -->
 	<param name="Title" type="description">Raster 2 Laser GCode generator NG</param>
-	<param name="Description" type="description">RKtech (fork from 305 Engineering)</param>
+	<param name="Description" type="description">RKtech</param>
 
 	<!-- Input parameters for python scripts that are displayed in the widget 
              created by inkscape are generated in order of how they are written  -->
         <param name="nopNB" type="notebook">
+            <page name="g1" gui-text="General setup">
+                <vbox>
+
+                    <!-- Image Export Options 
+                    <param name="imgDirName" type="string"  gui-text="Export directory"></param>
+                    -->
+                    <param name="imgDirName" type="path" mode="folder" gui-text="Export directory"></param>
+                    <param name="imgFileName" type="string"  gui-text="File Name"></param>
+                    <param name="imgNumFileSuffix" type="bool" gui-text="Add numeric suffix to filename">true</param>
+
+                    <spacer />
+                    <separator />
+                    <spacer />
+
+                    <!-- NOT IMPLEMENTED NOW: possible way to use already stored or used configurations
+                    <param name="cfgFileName" type="path" mode="file" filetypes="ngc,sgc" gui-text="Setting file"></param>
+                    <param name="cfgUseP1" type="bool" gui-text="Use Image setup from config file">true</param>
+                    <param name="cfgUseG1" type="bool" gui-text="Use G-Code 1 setup from config file">true</param>
+                   
+                    <spacer />
+                    <separator />
+                    <spacer size="expand" />
+                    -->
+
+                    <param name="dbg" type="bool" gui-text="debug (will write some additional data into GCode-file)">false</param>
+                    <param name="imgPreviewOnly" type="bool" gui-text="Preview only, if selectet no gcode is generated">false</param>
+                    <!--
+                    <param name="nopPreviewOnly" type="description">If "Preview only" is true the gcode file will not be generated.</param>
+                    -->
+                </vbox>
+                
+            </page>                    
             <page name="p1" gui-text="Image setup">
-            
-                <!-- Image Export Options -->
-                <param name="imgDirName" type="string"  gui-text="Export directory"></param>
-                <param name="imgFileName" type="string"  gui-text="File Name"></param>
-                <param name="imgNumFileSuffix" type="boolean" gui-text="Add numeric suffix to filename">true</param>
-                        
                 <param name="imgBGcolor" type="enum" gui-text="Replace transparency with">
                         <_item value="#ffffff">White</_item>
                         <_item value="#000000">Black</_item>
                 </param>
-                
 
                 <param name="imgResolution" type="enum" gui-text="Resolution">
                         <_item value="0">Use laser spot size</_item>
@@ -75,15 +100,10 @@
                 <param name="imgRotDiameter" type="float" precision="3" min="0.1" max="1000.0" gui-text="Workpiece diameter for rotary axis [mm]">50.0</param>
                 
                 <!-- FLIP = unchecked menan that the image look like GCode output -->
-                <param name="imgFullPage" type="boolean" gui-text="Use page outline">true</param>
-                <param name="imgPreviewOnly" type="boolean" gui-text="Preview only">false</param>
-                <param name="nopPreviewOnly" type="description">If "Preview only" is true the gcode file will not be generated.</param>
-
-                <param name="nopDbg" type="description">_____________________________________________________</param> <!-- Add seperator -->
-                <param name="dbg" type="boolean" gui-text="debug (will write all settings into GCode-file)">false</param>
+                <param name="imgFullPage" type="bool" gui-text="Use page outline">true</param>
         
             </page>
-            <page name="gc1" gui-text="G-Code 1">
+            <page name="gc1" gui-text="G-Code Laser">
                 <param name="gc1Setting" type="string"  gui-text="Name of this GCode setting">GCode setting 1</param>
                 
                 <param name="gc1StartCode" type="string"  gui-text="Init code">; add your init code here{NL}G90 G21{NL}S0 M3{NL}F{FEED}</param>
@@ -102,22 +122,6 @@
                 <param name="gc1AccDistance" type="float" precision="3" min="0.0" max="1000.0" gui-text="Distance for acceleration [mm]">10.0</param>
                 <param name="gc1LevelZ" type="float" precision="3" min="-1000.0" max="1000.0" gui-text="Z position [mm]">60.0</param>
 
-                <param name="gc1FlipX" type="boolean" gui-text="Flip X">false</param>
-                <param name="gc1FlipY" type="boolean" gui-text="Flip Y">false</param>
-                <param name="gc1Invert" type="boolean" gui-text="Invert (Black/White)">false</param>
-                <param name="gc1Gamma" type="float" precision="2" min="0.1" max="10.0" gui-text="Gamma value for laser power output (>1 darker)">1.0</param>
-                
-                <param name="gc1ZeroPointX" type="enum" gui-text="Zero point for width">
-                        <_item value="0">Left</_item>
-                        <_item value="1">Center</_item>
-                        <_item value="2">Right</_item>
-                </param>
-                <param name="gc1ZeroPointY" type="enum" gui-text="Zero point for heigth">
-                        <_item value="0">Top</_item>
-                        <_item value="1">Middle</_item>
-                        <_item value="2">Bottom</_item>
-                </param>
-
                 <param name="gc1OptScnLine" type="enum" gui-text="Optimize scan line">
                         <_item value="1">remove blank lines, reduce scan line length</_item>
                         <_item value="2">remove blank lines only</_item>
@@ -135,8 +139,25 @@
                 </param>
 
                 <param name="gc1ZigZagOffset" type="float" precision="3" min="-10.0" max="10.0" gui-text="Zig zag offset [mm]">0.0</param>
-                <param name="gc1Interleaved" type="boolean" gui-text="Interleaved line scan with fixed laser power">false</param>
+                <param name="gc1Interleaved" type="bool" gui-text="Interleaved line scan with fixed laser power">false</param>
 
+            </page>
+            <page name="gc2" gui-text="G-Code Image">
+                <param name="gc1FlipX" type="bool" gui-text="Flip X">false</param>
+                <param name="gc1FlipY" type="bool" gui-text="Flip Y">false</param>
+                <param name="gc1Invert" type="bool" gui-text="Invert (Black/White)">false</param>
+                <param name="gc1Gamma" type="float" precision="2" min="0.1" max="10.0" gui-text="Gamma value for laser power output (>1 darker)">1.0</param>
+                
+                <param name="gc1ZeroPointX" type="enum" gui-text="Zero point for width">
+                        <_item value="0">Left</_item>
+                        <_item value="1">Center</_item>
+                        <_item value="2">Right</_item>
+                </param>
+                <param name="gc1ZeroPointY" type="enum" gui-text="Zero point for heigth">
+                        <_item value="0">Top</_item>
+                        <_item value="1">Middle</_item>
+                        <_item value="2">Bottom</_item>
+                </param>
             </page>
         </param>
 

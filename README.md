@@ -1,8 +1,13 @@
 # GCode generator for raster images
 
-now for Inkscape 0.9x and 1.1.x
+now for Inkscape > 1.2
 
 ### Changelog
+
+**30.03.2024**
+
+* Change code to work with Inkscape > 1.0 (Tested with 1.2.2 and 1.3 AppImg)
+* Reorder of the configuration settings
 
 **09.04.2023**
 

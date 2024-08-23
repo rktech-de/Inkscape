@@ -2,7 +2,12 @@
 
 now only for Inkscape > 1.1
 
-### Changelog
+### Change-log
+
+**23.08.2024**
+
+* Speed up engraving bigger pictures within "fastest" mode by using traveling speed (e.g. with G0 command) when laser is off in a scan line for a longer distance
+* Add new configuration "Laser off travel code"
 
 **30.03.2024**
 
@@ -11,15 +16,15 @@ now only for Inkscape > 1.1
 
 **09.04.2023**
 
-* fix some 1.1. related Issues (inkscape put all output in stderr and script stops)
+* Fix some 1.1. related Issues (inkscape put all output in stderr and script stops)
 
 **14.03.2022**
 
-- fix some 1.1. related Issues
+- Fix some 1.1. related Issues
 
 **12.03.2022**
 
-- adapted to work with 0.9x and 1.1.x (Tested with 0.92.5 and 1.1.2)
+- Adapted to work with 0.9x and 1.1.x (Tested with 0.92.5 and 1.1.2)
 
 **06.03.2022**
 

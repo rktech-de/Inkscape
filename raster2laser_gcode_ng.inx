@@ -108,7 +108,8 @@
                 
                 <param name="gc1StartCode" type="string"  gui-text="Init code">; add your init code here{NL}G90 G21{NL}S0 M3{NL}F{FEED}</param>
                 <param name="gc1PostCode" type="string"  gui-text="Post code">; add your exit code here{NL}M5{NL}M2</param>
-                <param name="gc1LineCode" type="string"  gui-text="Start of line code">(Scanline {SCNL}, move dir {PDIR}){NL}G0 X{XPOS} Y{YPOS}</param>
+                <param name="gc1LineCode" type="string"  gui-text="Start of line code">(Scanline {SCNL}, move dir {PDIR})</param>
+                <param name="gc1OffTravelCode" type="string"  gui-text="Laser off travel code">G0 X{XPOS} Y{YPOS}</param>
                 <param name="gc1PixelCode" type="string"  gui-text="Power level change code">G1 X{XPOS} Y{YPOS} S{POWT}</param>  <!-- or "G1 X{XPOS} Y{YPOS} S{POWT}" -->
                 <param name="gc1LaserOn" type="string"  gui-text="Laser on command">M3</param>
                 <param name="gc1LaserOff" type="string"  gui-text="Laser off command">M5</param>

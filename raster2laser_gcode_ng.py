@@ -55,7 +55,7 @@ import array
 import collections
 import inkcmd
 
-r2l_version = "1.0.3"
+r2l_version = "1.0.4"
 
 # Pull Request #23
 # from Pull Request "https://github.com/305engineering/Inkscape/pull/23"
@@ -122,6 +122,7 @@ class GcodeExport(inkex.Effect):
         self.arg_parser.add_argument("--gc1StartCode",      type=str,           dest="gc1StartCode",        default="")
         self.arg_parser.add_argument("--gc1PostCode",       type=str,           dest="gc1PostCode",         default="")
         self.arg_parser.add_argument("--gc1LineCode",       type=str,           dest="gc1LineCode",         default="")
+        self.arg_parser.add_argument("--gc1OffTravelCode",  type=str,           dest="gc1OffTravelCode",         default="")
         self.arg_parser.add_argument("--gc1PixelCode",      type=str,           dest="gc1PixelCode",        default="")
         self.arg_parser.add_argument("--gc1LaserOn",        type=str,           dest="gc1LaserOn",          default="M03")
         self.arg_parser.add_argument("--gc1LaserOff",       type=str,           dest="gc1LaserOff",         default="M05")
@@ -662,6 +663,7 @@ class GcodeExport(inkex.Effect):
         startCmd = self.options.gc1StartCode
         postCmd = self.options.gc1PostCode
         lineCmd = self.options.gc1LineCode
+        travelCmd = self.options.gc1OffTravelCode
         pixelCmd = self.options.gc1PixelCode
         laserOnCmd = self.options.gc1LaserOn
         laserOffCmd = self.options.gc1LaserOff
@@ -751,6 +753,7 @@ class GcodeExport(inkex.Effect):
 
         scanTypeText = 'unknown'
         scanX = True
+        scanFast = False
         if scanType == 0:
             # Always left -> right
             scanTypeText = 'Always left -> right'
@@ -767,6 +770,7 @@ class GcodeExport(inkex.Effect):
             # Fastes path
             scanTypeText = 'Fastest X'
             scanX = True
+            scanFast = True
         elif scanType == 4:
             # Always top \/ bottom
             scanTypeText = 'Always top \/ bottom'
@@ -783,6 +787,7 @@ class GcodeExport(inkex.Effect):
             # Fastes path
             scanTypeText = 'Fastest Y'
             scanX = False
+            scanFast = True
 
         file_gcode = open(gcode_file_out, 'w')
         
@@ -827,6 +832,7 @@ class GcodeExport(inkex.Effect):
             file_gcode.write(';   --gc1StartCode            "%s"'%(startCmd) + GCODE_NL)
             file_gcode.write(';   --gc1PostCode             "%s"'%(postCmd) + GCODE_NL)
             file_gcode.write(';   --gc1LineCode             "%s"'%(lineCmd) + GCODE_NL)
+            file_gcode.write(';   --gc1OffTravelCode        "%s"'%(travelCmd) + GCODE_NL)
             file_gcode.write(';   --gc1PixelCode            "%s"'%(pixelCmd) + GCODE_NL)
             file_gcode.write(';   --gc1LaserOn              "%s"'%(laserOnCmd) + GCODE_NL)
             file_gcode.write(';   --gc1LaserOff             "%s"'%(laserOffCmd) + GCODE_NL)
@@ -1020,10 +1026,14 @@ class GcodeExport(inkex.Effect):
                     valueList['PIXV'] = '%i'%(pixelValueTo)
                     
                     file_gcode.write(generateGCodeLine(lineCmd, valueList) + GCODE_NL)
-
+                    file_gcode.write(generateGCodeLine(travelCmd, valueList) + GCODE_NL)
+                    
                     ##################################################################
                     # Iterate scan columns
                     laserPowerCange = True
+                    detectOffDistance = False 
+                    detectOffDistanceStart = 0.0
+                    detectOffDistanceEnd = 0.0
                     for scanColumn in scanColumns:
                         if laserPowerCange:
                             if scanX:
@@ -1041,16 +1051,61 @@ class GcodeExport(inkex.Effect):
                             powerFrom = power
 
                             valueList['SCNC'] = '%i'%(scanColumn+reverseOffset)    
-                            valueList['XPOS'] = '%s'%(floatToString(xPos))
-                            valueList['YPOS'] = '%s'%(floatToString(yPos))
                             valueList['ZPOS'] = '%s'%(floatToString(zPos))
-                            valueList['APOS'] = '%s'%(floatToString(yPos * 360.0 / (math.pi * abDiameter)))
-                            valueList['BPOS'] = '%s'%(floatToString(xPos * 360.0 / (math.pi * abDiameter)))
                             valueList['POWT'] = '%s'%(floatToString(powerTo))
                             valueList['POWF'] = '%s'%(floatToString(powerFrom))
                             valueList['PCMT'] = laserOnCmd if pixelValueTo   <= laserOnThreshold else laserOffCmd
                             valueList['PCMF'] = laserOnCmd if pixelValueFrom <= laserOnThreshold else laserOffCmd
                             valueList['PIXV'] = '%i'%(pixelValueTo)
+
+                            # neu ++
+                            if scanFast and power == minPower and detectOffDistance == False:
+                                detectOffDistance = True
+                                if scanX:
+                                    detectOffDistanceStart = float(scanColumn + reverseOffset)*Scala + xOffset + zigZagOffset
+                                else:
+                                    detectOffDistanceStart = -1.0 * float(scanColumn + reverseOffset)*Scala + yOffset + zigZagOffset
+                            if scanFast and power != minPower and detectOffDistance == True:
+                                detectOffDistance = False
+                                if scanX:
+                                    detectOffDistanceEnd = float(scanColumn + reverseOffset)*Scala + xOffset + zigZagOffset
+                                    xPos1 = detectOffDistanceStart + accelDist
+                                    xPos2 = detectOffDistanceEnd - accelDist
+                                    yPos1 = yPos
+                                    yPos2 = yPos
+                                else:
+                                    detectOffDistanceEnd = -1.0 * float(scanColumn + reverseOffset)*Scala + yOffset + zigZagOffset
+                                    xPos1 = xPos
+                                    xPos2 = xPos
+                                    yPos1 = detectOffDistanceStart - accelDist
+                                    yPos2 = detectOffDistanceEnd + accelDist
+
+                                if abs(detectOffDistanceStart - detectOffDistanceEnd) >= abs(3 * accelDist):
+                                    file_gcode.write("(*** DEBUG : Start = %f / End = %f / Diff = %f / 3*ADis = %f)"%(detectOffDistanceStart, detectOffDistanceEnd, detectOffDistanceStart-detectOffDistanceEnd,(3 * accelDist)) + GCODE_NL)
+
+                                    valueList['XPOS'] = '%s'%(floatToString(xPos1))
+                                    valueList['YPOS'] = '%s'%(floatToString(yPos1))
+                                    valueList['APOS'] = '%s'%(floatToString(yPos1 * 360.0 / (math.pi * abDiameter)))
+                                    valueList['BPOS'] = '%s'%(floatToString(xPos1 * 360.0 / (math.pi * abDiameter)))
+                                    file_gcode.write(generateGCodeLine(pixelCmd, valueList) + GCODE_NL)
+
+                                    valueList['XPOS'] = '%s'%(floatToString(xPos2))
+                                    valueList['YPOS'] = '%s'%(floatToString(yPos2))
+                                    valueList['APOS'] = '%s'%(floatToString(yPos2 * 360.0 / (math.pi * abDiameter)))
+                                    valueList['BPOS'] = '%s'%(floatToString(xPos2 * 360.0 / (math.pi * abDiameter)))
+                                    # file_gcode.write(generateGCodeLine("G0 X{XPOS} Y{YPOS}", valueList) + GCODE_NL)
+                                    file_gcode.write(generateGCodeLine(travelCmd, valueList) + GCODE_NL)
+
+                                    file_gcode.write("(*** DEBUG )" + GCODE_NL)
+
+
+
+                            # neu --
+
+                            valueList['XPOS'] = '%s'%(floatToString(xPos))
+                            valueList['YPOS'] = '%s'%(floatToString(yPos))
+                            valueList['APOS'] = '%s'%(floatToString(yPos * 360.0 / (math.pi * abDiameter)))
+                            valueList['BPOS'] = '%s'%(floatToString(xPos * 360.0 / (math.pi * abDiameter)))
                             file_gcode.write(generateGCodeLine(pixelCmd, valueList) + GCODE_NL)
                     
                         laserPowerCange = False

@@ -4,7 +4,7 @@
 
 ### Usage of "Raster2Laser NG"
 
-For a detailed description take a look into the WIKI: [User Manual](https://github.com/rktech-de/Inkscape/wiki/User-Manual)
+:book: For a detailed description take a look into the WIKI: [User Manual](https://github.com/rktech-de/Inkscape/wiki/User-Manual)
 
 ### Change-log
 
@@ -95,7 +95,7 @@ chmod 644 *.inx
 
 The extension can be started with: *Extension => GCode Laser Tools => Raster2Laser NG*
 
-The pull down entry can be changed in the *.inx file, look for `<submenu name="GCode Laser tools"/>`
+The pull down entry name can be changed in the *.inx file, look for `<submenu name="GCode Laser tools"/>`
 
 ### Note
 
